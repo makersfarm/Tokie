@@ -48,4 +48,12 @@ describe('BurstDetector', () => {
     d.addEvent(2000, 20_000);
     expect(d.evaluate(3000).sum).toBe(50_000);
   });
+
+  it('rejects NaN / negative / zero nutrition silently', () => {
+    const d = new BurstDetector();
+    d.addEvent(1000, NaN);
+    d.addEvent(2000, -100);
+    d.addEvent(3000, 0);
+    expect(d.evaluate(4000)).toEqual({ isBurst: false, sum: 0 });
+  });
 });

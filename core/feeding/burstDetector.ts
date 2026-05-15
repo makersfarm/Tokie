@@ -13,8 +13,11 @@ export class BurstDetector {
   private samples: Sample[] = [];
   private lastFiredAt: number | null = null;
 
+  // Buffer pruning happens in evaluate(); callers are expected to pair
+  // addEvent with periodic evaluate. In practice useBurstDetector evaluates
+  // on every event, so the buffer stays bounded.
   addEvent(ts: number, nutrition: number): void {
-    if (nutrition <= 0) return;
+    if (!(nutrition > 0)) return; // rejects 0, negatives, and NaN
     this.samples.push({ ts, nutrition });
   }
 
