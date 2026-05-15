@@ -37,12 +37,7 @@ html, body, #root {
   50%  { transform: translate(-50%, -65%) scale(1.15); }
   100% { transform: translate(-50%, -50%) scale(1); }
 }
-.hud {
-  position: absolute; left: 4px; bottom: 4px;
-  font: 10px monospace; color: #fff;
-  text-shadow: 0 0 3px rgba(0,0,0,0.9);
-  -webkit-app-region: no-drag;
-}
+
 .burst {
   position: absolute; left: 50%; top: 50%;
   transform: translate(-50%, -50%);
@@ -94,3 +89,73 @@ html, body, #root {
   cursor: pointer;
 }
 .stats .refresh:hover { background: #3c3c40; }
+
+/* --- pet overlay v2 --- */
+.badge {
+  position: absolute; top: 4px; left: 50%;
+  transform: translateX(-50%);
+  display: flex; align-items: center; gap: 4px;
+  font: 10px -apple-system, system-ui, sans-serif;
+  color: rgba(255,255,255,0.85);
+  text-shadow: 0 0 3px rgba(0,0,0,0.9);
+  -webkit-app-region: no-drag;
+  pointer-events: none;
+}
+.badge-icon { font-size: 12px; }
+.badge-name { font-weight: 500; }
+
+.progress {
+  position: absolute; bottom: 8px; left: 20%; right: 20%;
+  height: 2px;
+  background: rgba(255,255,255,0.18);
+  border-radius: 1px; overflow: hidden;
+  -webkit-app-region: no-drag;
+  pointer-events: none;
+}
+.progress-fill {
+  height: 100%;
+  background: rgba(255,220,120,0.9);
+  transition: width 0.4s ease;
+}
+.progress.mood-sleepy .progress-fill,
+.progress.mood-sad    .progress-fill { background: rgba(180,180,190,0.7); }
+.progress.mood-normal .progress-fill { background: rgba(230,230,235,0.85); }
+
+.info-bubble {
+  position: absolute; top: 30%; left: calc(100% + 6px);
+  white-space: nowrap;
+  background: rgba(28,28,31,0.92);
+  color: #e5e5e7;
+  padding: 6px 8px; border-radius: 6px;
+  font: 10px ui-monospace, "SF Mono", monospace;
+  pointer-events: none;
+  -webkit-app-region: no-drag;
+  animation: fadeIn 150ms ease;
+  z-index: 5;
+}
+.info-bubble.compact {
+  top: auto; bottom: 16px;
+  left: 50%; transform: translateX(-50%);
+  font-size: 9px;
+}
+.info-bubble.flip-left { left: auto; right: calc(100% + 6px); }
+@keyframes fadeIn { from { opacity: 0 } to { opacity: 1 } }
+
+.speech-bubble {
+  position: absolute; left: 50%;
+  transform: translateX(-50%);
+  background: rgba(255,255,255,0.95);
+  color: #1c1c1f;
+  padding: 4px 8px; border-radius: 10px;
+  font: 11px -apple-system, system-ui, sans-serif;
+  pointer-events: none;
+  -webkit-app-region: no-drag;
+  z-index: 10;
+  animation: bubblePop 200ms ease;
+}
+.speech-bubble.greeting  { top: -4px; }
+.speech-bubble.proactive { top: -4px; }
+@keyframes bubblePop {
+  from { opacity: 0; transform: translate(-50%, 6px) scale(0.85); }
+  to   { opacity: 1; transform: translate(-50%, 0)  scale(1);    }
+}
