@@ -9,9 +9,28 @@ export default defineConfig({
   plugins: [
     react(),
     electron({
-      main: { entry: 'electron/main.ts' },
-      preload: { input: 'electron/preload.ts' },
-      renderer: {}
+      main: {
+        entry: path.resolve(__dirname, 'electron/main.ts'),
+        vite: {
+          build: {
+            outDir: path.resolve(__dirname, 'dist-electron'),
+            rollupOptions: {
+              external: ['better-sqlite3', 'electron', 'fsevents']
+            }
+          }
+        }
+      },
+      preload: {
+        input: path.resolve(__dirname, 'electron/preload.ts'),
+        vite: {
+          build: {
+            outDir: path.resolve(__dirname, 'dist-electron'),
+            rollupOptions: {
+              external: ['electron']
+            }
+          }
+        }
+      }
     })
   ]
 });

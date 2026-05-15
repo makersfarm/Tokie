@@ -1,20 +1,23 @@
-import { app, BrowserWindow } from 'electron';
-import path from 'node:path';
-import { createPetWindow } from './window';
+import { app } from 'electron';
+import { bootstrap } from './bootstrap';
 
-let mainWindow: BrowserWindow | null = null;
+let shutdownFn: (() => Promise<void>) | null = null;
 
 app.whenReady().then(async () => {
-  const devUrl = process.env.VITE_DEV_SERVER_URL ?? null;
-  const indexHtml = path.join(__dirname, '../dist/index.html');
-  mainWindow = createPetWindow({
-    preloadPath: path.join(__dirname, 'preload.js'),
-    rendererUrl: devUrl,
-    rendererFile: devUrl ? null : indexHtml,
-    pos: { x: 1500, y: 80 }
-  });
+  const { shutdown } = await bootstrap();
+  shutdownFn = shutdown;
 });
 
 app.on('window-all-closed', () => {
   if (process.platform !== 'darwin') app.quit();
+});
+
+app.on('before-quit', async (e) => {
+  if (shutdownFn) {
+    const fn = shutdownFn;
+    shutdownFn = null;
+    e.preventDefault();
+    await fn();
+    app.quit();
+  }
 });
