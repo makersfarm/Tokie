@@ -1,0 +1,45 @@
+html, body, #root {
+  margin: 0; padding: 0; width: 100%; height: 100%;
+  background: transparent;
+  overflow: hidden;
+  -webkit-app-region: drag;
+  user-select: none;
+}
+.pet {
+  position: absolute; left: 50%; top: 50%;
+  transform: translate(-50%, -50%);
+  font-size: 96px;
+  -webkit-app-region: no-drag;
+  cursor: pointer;
+  transition: transform 0.15s;
+}
+.pet.feasting { animation: bounce 0.4s ease; }
+@keyframes bounce {
+  0%   { transform: translate(-50%, -50%) scale(1); }
+  50%  { transform: translate(-50%, -65%) scale(1.15); }
+  100% { transform: translate(-50%, -50%) scale(1); }
+}
+.hud {
+  position: absolute; left: 4px; bottom: 4px;
+  font: 10px monospace; color: #fff;
+  text-shadow: 0 0 3px rgba(0,0,0,0.9);
+  -webkit-app-region: no-drag;
+}
+.burst {
+  position: absolute; left: 50%; top: 50%;
+  transform: translate(-50%, -50%);
+  font-size: 14px; color: gold;
+  animation: floatUp 1s ease-out forwards;
+  pointer-events: none;
+}
+@keyframes floatUp {
+  0%   { opacity: 1; transform: translate(-50%, -50%); }
+  100% { opacity: 0; transform: translate(-50%, -160%); }
+}
+.cutscene {
+  position: absolute; inset: 0;
+  display: flex; align-items: center; justify-content: center;
+  background: rgba(255, 255, 255, 0.6);
+  font: 14px monospace;
+  -webkit-app-region: no-drag;
+}
