@@ -3,5 +3,5 @@ import path from 'node:path';
 
 export default defineConfig({
   resolve: { alias: { '@core': path.resolve(__dirname, 'core') } },
-  test: { environment: 'node', include: ['core/**/*.test.ts'] }
+  test: { environment: 'node', include: ['core/**/*.test.ts', 'installers/**/*.test.ts'] }
 });
