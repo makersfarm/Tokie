@@ -3,7 +3,7 @@
 ## 개발 환경 셋업
 
 ```bash
-git clone https://github.com/ikseong/tokie
+git clone https://github.com/makersfarm/Tokie
 cd tokie
 npm install
 npm run dev

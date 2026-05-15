@@ -66,8 +66,8 @@ npm install --save-dev electron-builder
     },
     "publish": {
       "provider": "github",
-      "owner": "<github-username>",
-      "repo": "tokie"
+      "owner": "makersfarm",
+      "repo": "Tokie"
     }
   }
 }
@@ -153,7 +153,7 @@ git log --oneline $(git describe --tags --abbrev=0 HEAD^)..HEAD
 ```md
 ## 다운로드
 
-[GitHub Releases](https://github.com/<owner>/tokie/releases/latest) 에서 OS 에 맞는 빌드 받기:
+[GitHub Releases](https://github.com/makersfarm/Tokie/releases/latest) 에서 OS 에 맞는 빌드 받기:
 
 - macOS: `Tokie-<버전>-mac.dmg`
 - (Windows/Linux 빌드는 TODO)

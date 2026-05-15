@@ -6,7 +6,7 @@ Claude Code 토큰을 먹고 자라는 데스크탑 펫. 작은 투명 창이 �
 
 ## 다운로드
 
-[GitHub Releases](https://github.com/ikseong/tokie/releases/latest) 에서 OS 에 맞는 빌드:
+[GitHub Releases](https://github.com/makersfarm/Tokie/releases/latest) 에서 OS 에 맞는 빌드:
 
 - **macOS**: `Tokie-<version>-mac.dmg`
 - (Windows / Linux 빌드 — 추후 추가)
@@ -49,7 +49,7 @@ XP = `input*1 + output*3 + cacheCreate*1.5 + cacheRead*0.1` (토큰 → 영양�
 ## Quick start (개발)
 
 ```bash
-git clone https://github.com/ikseong/tokie
+git clone https://github.com/makersfarm/Tokie
 cd tokie
 npm install            # postinstall 이 better-sqlite3 를 Electron ABI 로 rebuild
 npm run dev            # 펫 윈도우 + HMR
