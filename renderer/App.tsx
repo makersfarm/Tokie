@@ -13,11 +13,18 @@ import { EvolveCutscene } from './components/EvolveCutscene';
 import { StatsView } from './components/StatsView';
 import { pickGreeting, pickBurstLine } from './data/speech';
 import type { Phase } from '@core/types';
+import { nextThreshold, STAGES } from '@core/pet/stages';
 
 function fmtK(n: number): string {
   if (n >= 1_000_000) return `${(n / 1_000_000).toFixed(1)}M`;
   if (n >= 1_000)     return `${(n / 1_000).toFixed(1)}k`;
   return n.toFixed(0);
+}
+
+function targetThreshold(phase: Phase): number {
+  // next phase threshold, or — if at final phase — the threshold that
+  // unlocked the final phase itself (i.e. STAGES[3].threshold).
+  return nextThreshold(phase) ?? STAGES.find(s => s.phase === phase)?.threshold ?? 0;
 }
 
 const COMPACT_W = 160;
@@ -126,7 +133,7 @@ function PetView() {
         <Pet phase={snap.phase} mood={snap.mood} feasting={feasting} />
       </div>
       <PetProgressBar phase={snap.phase} xp={snap.lifetimeXP} mood={snap.mood} />
-      <div className="token-today">{fmtK(tokensToday)}</div>
+      <div className="token-today">{fmtK(snap.lifetimeXP)} / {fmtK(targetThreshold(snap.phase))}</div>
 
       {bursts.map(b => <EatingBurst key={b.id} amount={b.amount} xPct={b.xPct} yPct={b.yPct} />)}
       {hover.hovered && <InfoBubble snap={snap} tokensToday={tokensToday} compact={compactInfo} />}
