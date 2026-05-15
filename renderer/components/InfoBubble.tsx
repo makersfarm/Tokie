@@ -1,11 +1,6 @@
 import type { PetSnapshot } from '@core/types';
 import { nextThreshold } from '@core/pet/stages';
-
-function fmt(n: number): string {
-  if (n >= 1_000_000) return `${(n / 1_000_000).toFixed(2)}M`;
-  if (n >= 1_000)     return `${(n / 1_000).toFixed(1)}k`;
-  return n.toFixed(0);
-}
+import { fmtK as fmt } from '../data/fmt';
 
 export function InfoBubble(
   { snap, tokensToday, compact }: { snap: PetSnapshot; tokensToday: number; compact: boolean }

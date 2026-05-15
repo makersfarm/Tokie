@@ -12,14 +12,9 @@ import { EatingBurst } from './components/EatingBurst';
 import { EvolveCutscene } from './components/EvolveCutscene';
 import { StatsView } from './components/StatsView';
 import { pickGreeting, pickBurstLine } from './data/speech';
+import { fmtK } from './data/fmt';
 import type { Phase } from '@core/types';
 import { nextThreshold, STAGES } from '@core/pet/stages';
-
-function fmtK(n: number): string {
-  if (n >= 1_000_000) return `${(n / 1_000_000).toFixed(2)}M`;
-  if (n >= 1_000)     return `${(n / 1_000).toFixed(1)}k`;
-  return n.toFixed(0);
-}
 
 function targetThreshold(phase: Phase): number {
   // next phase threshold, or — if at final phase — the threshold that
