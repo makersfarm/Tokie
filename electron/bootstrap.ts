@@ -34,7 +34,12 @@ export async function bootstrap(): Promise<BootResult> {
   const token       = crypto.randomBytes(16).toString('hex');
   const claudeHome  = path.join(os.homedir(), '.claude');
   const statusline  = new ClaudeStatusLineSource(token);
-  const jsonlSrc    = new ClaudeJsonlSource(claudeHome);
+  const isFresh     = snap.lifetimeXP === 0 && Object.keys(snap.lastCursors).length === 0;
+  const jsonlSrc    = new ClaudeJsonlSource(claudeHome, { skipExistingHistory: isFresh });
+  const savedJsonlCursors = snap.lastCursors['claude-jsonl-files'] as any;
+  if (savedJsonlCursors && typeof savedJsonlCursors === 'object') {
+    jsonlSrc.loadCursors(savedJsonlCursors);
+  }
   const registry    = new SourceRegistry([statusline, jsonlSrc]);
 
   await registry.start(e => pipeline.handle(e));
@@ -52,6 +57,15 @@ export async function bootstrap(): Promise<BootResult> {
   // periodic decay tick
   const tickInterval = setInterval(() => pet.tick(), 60_000);
   pet.tick(); // catch-up on launch
+
+  // every minute: persist JSONL cursors so we resume correctly on next launch
+  const cursorInterval = setInterval(() => {
+    const next = { ...pet.snapshot, lastCursors: {
+      ...pet.snapshot.lastCursors,
+      'claude-jsonl-files': jsonlSrc.exportCursors() as any
+    } };
+    pet.load(next);
+  }, 60_000);
 
   const win = createPetWindow({
     preloadPath:  path.join(__dirname, 'preload.js'),
@@ -72,7 +86,16 @@ export async function bootstrap(): Promise<BootResult> {
 
   const trayCb: TrayCallbacks = {
     onShowStats: () => win.show(),
-    onResetPet:  () => pet.load(makeDefaultSnapshot(Date.now())),
+    onResetPet:  () => {
+      pet.load(makeDefaultSnapshot(Date.now()));
+      // Re-snap JSONL offsets to current file sizes so existing history isn't replayed
+      for (const [file] of Object.entries(jsonlSrc.exportCursors())) {
+        try {
+          const size = fs.statSync(file).size;
+          jsonlSrc.loadCursors({ [file]: { lineOffset: size } });
+        } catch { /* ignore */ }
+      }
+    },
     onWipeAll:   () => {
       pet.load(makeDefaultSnapshot(Date.now()));
       db.close();
@@ -86,6 +109,7 @@ export async function bootstrap(): Promise<BootResult> {
     window: win,
     shutdown: async () => {
       clearInterval(tickInterval);
+      clearInterval(cursorInterval);
       unwire();
       tray.destroy();
       saver.flush();

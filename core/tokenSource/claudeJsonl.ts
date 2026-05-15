@@ -10,13 +10,36 @@ interface FileState {
   offset: number;
 }
 
+export interface ClaudeJsonlOpts {
+  /** If true, on first sighting of a file, jump offset to the current file size
+   *  (i.e. don't replay existing history — only count appended lines). */
+  skipExistingHistory?: boolean;
+}
+
 export class ClaudeJsonlSource implements TokenSource {
   readonly id = 'claude-jsonl';
   private watcher: FSWatcher | null = null;
   private state = new Map<string, FileState>();
   private emit: ((e: TokenEvent) => void) | null = null;
+  private skipExistingHistory: boolean;
 
-  constructor(private claudeHome: string) {}
+  constructor(private claudeHome: string, opts: ClaudeJsonlOpts = {}) {
+    this.skipExistingHistory = opts.skipExistingHistory ?? false;
+  }
+
+  /** Apply persisted offsets from a prior run. */
+  loadCursors(cursors: Record<string, { lineOffset?: number }>): void {
+    for (const [file, c] of Object.entries(cursors)) {
+      if (typeof c.lineOffset === 'number') this.state.set(file, { offset: c.lineOffset });
+    }
+  }
+
+  /** Returns current offsets to be persisted. */
+  exportCursors(): Record<string, { file: string; lineOffset: number }> {
+    const out: Record<string, { file: string; lineOffset: number }> = {};
+    for (const [file, s] of this.state) out[file] = { file, lineOffset: s.offset };
+    return out;
+  }
 
   async start(emit: (e: TokenEvent) => void): Promise<void> {
     this.emit = emit;
@@ -26,18 +49,26 @@ export class ClaudeJsonlSource implements TokenSource {
       ignoreInitial: false,
       awaitWriteFinish: { stabilityThreshold: 50, pollInterval: 50 }
     });
-    this.watcher.on('add', f => {
-      if (f.endsWith('.jsonl')) this.readNew(f);
-    });
-    this.watcher.on('change', f => {
-      if (f.endsWith('.jsonl')) this.readNew(f);
-    });
+    this.watcher.on('add', f => this.onFile(f, /*firstSighting*/ true));
+    this.watcher.on('change', f => this.onFile(f, /*firstSighting*/ false));
   }
 
   async stop(): Promise<void> {
     await this.watcher?.close();
     this.watcher = null;
     this.emit = null;
+  }
+
+  private onFile(file: string, firstSighting: boolean): void {
+    if (!file.endsWith('.jsonl')) return;
+    if (firstSighting && this.skipExistingHistory && !this.state.has(file)) {
+      // Mark this file as seen at its current size — future appends only.
+      let stat: fs.Stats;
+      try { stat = fs.statSync(file); } catch { return; }
+      this.state.set(file, { offset: stat.size });
+      return;
+    }
+    this.readNew(file);
   }
 
   private readNew(file: string): void {
@@ -51,23 +82,28 @@ export class ClaudeJsonlSource implements TokenSource {
       return this.readNew(file);
     }
     if (stat.size === prev) return;
+
+    const CHUNK = 1 << 20; // 1MB
     const fd = fs.openSync(file, 'r');
     try {
-      const buf = Buffer.alloc(stat.size - prev);
-      fs.readSync(fd, buf, 0, buf.length, prev);
-      const text = buf.toString('utf8');
-      const lines = text.split('\n');
-      // last element may be partial line; only advance offset to before it
-      const complete = lines.slice(0, -1);
-      const trailing = lines[lines.length - 1] ?? '';
-      const trailingPartialBytes = Buffer.byteLength(trailing, 'utf8');
-      const newOffset = stat.size - trailingPartialBytes;
-      for (const line of complete) {
-        if (!line) continue;
-        const ev = parseClaudeJsonlLine(line, file);
-        if (ev) this.emit(ev);
+      let offset = prev;
+      let leftover = '';
+      while (offset < stat.size) {
+        const remaining = stat.size - offset;
+        const buf = Buffer.alloc(Math.min(CHUNK, remaining));
+        fs.readSync(fd, buf, 0, buf.length, offset);
+        const chunk = leftover + buf.toString('utf8');
+        const lines = chunk.split('\n');
+        leftover = lines.pop() ?? '';
+        for (const line of lines) {
+          if (!line) continue;
+          const ev = parseClaudeJsonlLine(line, file);
+          if (ev) this.emit(ev);
+        }
+        offset += buf.length;
       }
-      this.state.set(file, { offset: newOffset });
+      const trailingBytes = Buffer.byteLength(leftover, 'utf8');
+      this.state.set(file, { offset: stat.size - trailingBytes });
     } finally {
       fs.closeSync(fd);
     }
