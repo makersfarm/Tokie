@@ -8,7 +8,9 @@ export interface WindowOpts {
   size: { w: number; h: number };
 }
 
-const MIN = 120;
+// MIN dropped to 60 so user can shrink the pet down to a tiny dot when they
+// want it out of the way. Renderer hides badge/progress/readout below 100.
+const MIN = 60;
 const MAX = 600;
 
 export function createPetWindow(opts: WindowOpts): BrowserWindow {

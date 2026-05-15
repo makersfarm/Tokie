@@ -5,6 +5,10 @@ import path from 'node:path';
 
 export default defineConfig({
   root: 'renderer',
+  build: {
+    outDir: path.resolve(__dirname, 'dist'),
+    emptyOutDir: true
+  },
   resolve: { alias: { '@core': path.resolve(__dirname, 'core') } },
   plugins: [
     react(),

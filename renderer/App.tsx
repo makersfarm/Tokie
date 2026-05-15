@@ -24,6 +24,9 @@ function targetThreshold(phase: Phase): number {
 
 const COMPACT_W = 160;
 const BADGE_COMPACT_W = 140;
+// Below TINY_W the window is too small for any chrome — only the pet itself
+// is shown so the user can have a dot-sized companion.
+const TINY_W = 100;
 const CLICK_THRESHOLD_PX = 5;
 const GREETING_COOLDOWN_MS = 300;
 const GREETING_TTL_MS = 800;
@@ -53,6 +56,7 @@ function PetView() {
   const winW = useWindowWidth();
   const compactInfo = winW <= COMPACT_W;
   const compactBadge = winW <= BADGE_COMPACT_W;
+  const tiny = winW <= TINY_W;
 
   const hover = useHover();
 
@@ -144,12 +148,12 @@ function PetView() {
 
   return (
     <div className="root" onContextMenu={handleContext}>
-      <StageBadge phase={snap.phase} compact={compactBadge} />
+      {!tiny && <StageBadge phase={snap.phase} compact={compactBadge} />}
       <div {...hover.bind} onPointerDown={onPointerDown} onPointerUp={onPointerUp}>
         <Pet phase={snap.phase} mood={snap.mood} feasting={feasting} />
       </div>
-      <PetProgressBar phase={snap.phase} xp={snap.lifetimeXP} mood={snap.mood} />
-      <div className="token-today">{fmtK(snap.lifetimeXP)} / {fmtK(targetThreshold(snap.phase))}</div>
+      {!tiny && <PetProgressBar phase={snap.phase} xp={snap.lifetimeXP} mood={snap.mood} />}
+      {!tiny && <div className="token-today">{fmtK(snap.lifetimeXP)} / {fmtK(targetThreshold(snap.phase))}</div>}
 
       {bursts.map(b => <EatingBurst key={b.id} amount={b.amount} xPct={b.xPct} yPct={b.yPct} />)}
       {hover.hovered && <InfoBubble snap={snap} tokensToday={tokensToday} compact={compactInfo} />}

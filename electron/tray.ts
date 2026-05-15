@@ -45,10 +45,11 @@ export function buildMenuTemplate(cb: TrayCallbacks): MenuItemConstructorOptions
 }
 
 function makeIcon(): Electron.NativeImage {
-  // Hand-rolled 22x22 colored egg/chick icon (no template mode).
-  // Bright yellow body + black outline + eyes so it's always visible
-  // against any menubar background (light/dark/wallpaper notch).
-  const W = 22, H = 22;
+  // 16x16 colored chick icon — the size macOS expects for a status item.
+  // Earlier 22x22 was silently refused by macOS (Electron core maintainer
+  // codebytere: "macOS tray won't resize images with incorrect dimensions"
+  // — electron/electron#45231). No log, no error, just empty slot.
+  const W = 16, H = 16;
   const buf = Buffer.alloc(W * H * 4);
   for (let y = 0; y < H; y++) {
     for (let x = 0; x < W; x++) {

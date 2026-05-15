@@ -4,15 +4,34 @@
   "version": "0.1.0",
   "description": "Cute desktop pet that grows on your Claude Code token usage.",
   "main": "dist-electron/main.js",
-  "directories": {
-    "doc": "docs"
-  },
   "scripts": {
     "dev": "vite",
     "build": "vite build",
     "test": "vitest run",
     "test:watch": "vitest",
-    "postinstall": "electron-rebuild -f -w better-sqlite3"
+    "postinstall": "electron-rebuild -f -w better-sqlite3",
+    "dist": "vite build && electron-builder --mac --dir"
+  },
+  "build": {
+    "appId": "com.tokie.app",
+    "productName": "Tokie",
+    "directories": {
+      "output": "release"
+    },
+    "files": [
+      "dist/**",
+      "dist-electron/**",
+      "scripts/**",
+      "package.json"
+    ],
+    "asarUnpack": [
+      "node_modules/better-sqlite3/**"
+    ],
+    "mac": {
+      "category": "public.app-category.utilities",
+      "target": "dir",
+      "identity": null
+    }
   },
   "keywords": [],
   "author": "",
@@ -32,7 +51,8 @@
     "@types/react-dom": "^19.2.3",
     "@vitejs/plugin-react": "^6.0.2",
     "@vitest/ui": "^4.1.6",
-    "electron": "^33.0.0",
+    "electron": "^38.8.6",
+    "electron-builder": "^26.8.1",
     "esbuild": "^0.28.0",
     "typescript": "^5.7.0",
     "vite": "^8.0.13",
