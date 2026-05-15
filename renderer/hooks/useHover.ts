@@ -1,4 +1,4 @@
-import { useRef, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 
 export function useHover(enterMs = 150, leaveMs = 200) {
   const [hovered, setHovered] = useState(false);
@@ -18,6 +18,8 @@ export function useHover(enterMs = 150, leaveMs = 200) {
     clear();
     leaveTimer.current = setTimeout(() => setHovered(false), leaveMs);
   };
+
+  useEffect(() => () => clear(), []);
 
   return { hovered, bind: { onPointerEnter, onPointerLeave } };
 }
