@@ -93,6 +93,21 @@ describe('EventsDb', () => {
     expect(jsonl.input).toBe(51);
   });
 
+  it('stats.today counts only events on or after local midnight of NOW', () => {
+    // Build NOW at noon local so midnight is unambiguously earlier the same day.
+    const noon = new Date(2026, 4, 15, 12, 0, 0, 0).getTime();
+    const midnight = new Date(2026, 4, 15, 0, 0, 0, 0).getTime();
+    db.insert(mkEvent({ ts: midnight + 1000, sourceId: 's1',
+      dedupKey: { messageId: 'm1', requestId: 'r1' },
+      tokens: { input: 100, output: 200, cacheRead: 0, cacheCreate: 0 } }));
+    db.insert(mkEvent({ ts: midnight - 1000, sourceId: 's1',
+      dedupKey: { messageId: 'm2', requestId: 'r2' },
+      tokens: { input: 999, output: 999, cacheRead: 0, cacheCreate: 0 } }));
+    const s = db.stats(noon);
+    expect(s.today.input).toBe(100);
+    expect(s.today.output).toBe(200);
+  });
+
   it('stats on empty db returns zeros', () => {
     const s = db.stats(1_000_000);
     expect(s.events).toBe(0);

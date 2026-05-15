@@ -105,12 +105,22 @@ html, body, #root {
 .badge-name { font-weight: 500; }
 
 .progress {
-  position: absolute; bottom: 8px; left: 20%; right: 20%;
+  position: absolute; bottom: 4px; left: 20%; right: 20%;
   height: 2px;
   background: rgba(255,255,255,0.18);
   border-radius: 1px; overflow: hidden;
   -webkit-app-region: no-drag;
   pointer-events: none;
+}
+.token-today {
+  position: absolute; bottom: 8px; left: 50%;
+  transform: translateX(-50%);
+  font: 9px ui-monospace, "SF Mono", monospace;
+  color: rgba(255,255,255,0.75);
+  text-shadow: 0 0 3px rgba(0,0,0,0.9);
+  -webkit-app-region: no-drag;
+  pointer-events: none;
+  white-space: nowrap;
 }
 .progress-fill {
   height: 100%;

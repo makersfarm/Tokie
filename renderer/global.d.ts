@@ -8,6 +8,7 @@ interface EventStats {
   firstTs: number | null;
   lastTs:  number | null;
   lifetime: TokenSum;
+  today:    TokenSum;
   last24h:  TokenSum;
   last7d:   TokenSum;
   bySource: SourceBreakdown[];

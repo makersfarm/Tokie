@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from 'react';
 import { usePetState } from './hooks/usePetState';
 import { useHover } from './hooks/useHover';
-import { useStats24h } from './hooks/useStats24h';
+import { useTokensToday } from './hooks/useTokensToday';
 import { useBurstDetector } from './hooks/useBurstDetector';
 import { Pet } from './components/Pet';
 import { StageBadge } from './components/StageBadge';
@@ -13,6 +13,12 @@ import { EvolveCutscene } from './components/EvolveCutscene';
 import { StatsView } from './components/StatsView';
 import { pickGreeting, pickBurstLine } from './data/speech';
 import type { Phase } from '@core/types';
+
+function fmtK(n: number): string {
+  if (n >= 1_000_000) return `${(n / 1_000_000).toFixed(1)}M`;
+  if (n >= 1_000)     return `${(n / 1_000).toFixed(1)}k`;
+  return n.toFixed(0);
+}
 
 const COMPACT_W = 160;
 const BADGE_COMPACT_W = 140;
@@ -40,7 +46,7 @@ function useWindowWidth(): number {
 
 function PetView() {
   const { snap, lastEvent } = usePetState();
-  const tokens24h = useStats24h(lastEvent);
+  const tokensToday = useTokensToday(lastEvent);
   const burst = useBurstDetector(lastEvent);
   const winW = useWindowWidth();
   const compactInfo = winW <= COMPACT_W;
@@ -118,9 +124,10 @@ function PetView() {
         <Pet phase={snap.phase} mood={snap.mood} feasting={feasting} />
       </div>
       <PetProgressBar phase={snap.phase} xp={snap.lifetimeXP} mood={snap.mood} />
+      <div className="token-today">{fmtK(tokensToday)}</div>
 
       {bursts.map(b => <EatingBurst key={b.id} amount={b.amount} />)}
-      {hover.hovered && <InfoBubble snap={snap} tokens24h={tokens24h} compact={compactInfo} />}
+      {hover.hovered && <InfoBubble snap={snap} tokensToday={tokensToday} compact={compactInfo} />}
       {greeting   && <SpeechBubble text={greeting}   variant="greeting"  />}
       {burstLine  && <SpeechBubble text={burstLine}  variant="proactive" />}
       {evo && <EvolveCutscene from={evo.from} to={evo.to} />}

@@ -21,9 +21,16 @@ export interface EventStats {
   firstTs: number | null;
   lastTs: number | null;
   lifetime: TokenSum;
+  today:    TokenSum;  // since local midnight
   last24h: TokenSum;
   last7d:  TokenSum;
   bySource: SourceBreakdown[];
+}
+
+function startOfLocalDay(now: number): number {
+  const d = new Date(now);
+  d.setHours(0, 0, 0, 0);
+  return d.getTime();
 }
 
 const DAY_MS = 24 * 60 * 60 * 1000;
@@ -111,6 +118,7 @@ export class EventsDb {
     `).get() as { events: number; totalCostUsd: number; firstTs: number | null; lastTs: number | null };
 
     const lifetime = this.sumSince(0);
+    const today    = this.sumSince(startOfLocalDay(now));
     const last24h  = this.sumSince(now - DAY_MS);
     const last7d   = this.sumSince(now - 7 * DAY_MS);
 
@@ -127,7 +135,7 @@ export class EventsDb {
       ORDER BY events DESC
     `).all() as SourceBreakdown[];
 
-    return { ...meta, lifetime, last24h, last7d, bySource };
+    return { ...meta, lifetime, today, last24h, last7d, bySource };
   }
 
   close(): void {
