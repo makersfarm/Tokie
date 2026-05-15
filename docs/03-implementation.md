@@ -20,8 +20,10 @@ core/             플랫폼 비의존 도메인 로직 (테스트 가능)
   storage/        pet-state.json, events.sqlite, cursor, paths
 renderer/         React UI (Vite)
   main.tsx, App.tsx
-  components/     Pet, HUD, EatingBurst, EvolveCutscene
-  hooks/usePetState.ts
+  components/     Pet, StageBadge, PetProgressBar, EatingBurst,
+                  SpeechBubble, InfoBubble, EvolveCutscene, StatsView
+  hooks/          usePetState, useHover, useTokensToday, useBurstDetector
+  data/           speech.ts (greeting/burst pools), fmt.ts (K/M format)
   public/sprites/ phase0..3.svg
   styles.css
 installers/       외부 시스템 손대는 코드 (statusLine settings.json)
@@ -70,10 +72,13 @@ npm run postinstall  # better-sqlite3 를 Electron ABI 로 rebuild
 11. 60s `setInterval(pet.tick)`. 부트 직후 한 번 호출 (catch-up).
 12. 60s `setInterval` 로 jsonl cursor 들을 snapshot 에 백업.
 13. `createPetWindow({ pos, size })` → renderer 로드.
-14. `trayCb` 콜백 정의 → `wireIpc(win, pet, () => buildMenuTemplate(trayCb))`.
-15. `win.on('moved' / 'resized')` 에서 windowPos / windowSize 갱신.
-16. `createTray(trayCb)`.
-17. `shutdown` 함수 반환 → `app.on('before-quit')` 에서 호출.
+14. Stats 윈도우 lazy 핸들 (`statsWin`) + `openStats()` 함수 — 첫 호출 시 `createStatsWindow` 로 생성, `?view=stats` 라우트로 같은 renderer 번들 재사용.
+15. `wireIpc({ pet, db, menuTemplate, petWindow, broadcastWindows })` — broadcast 는 함수로 받아 매번 평가 (statsWin 생성 시 자동 포함).
+16. `win.on('moved' / 'resized')` 에서 windowPos / windowSize 갱신.
+17. `createTray(trayCb)`.
+18. `shutdown` 함수 반환 → `app.on('before-quit')` 에서 호출.
+
+`electron/main.ts` 의 시작 부분에서 `app.setPath('userData', ...token-eater-pet/...)` 로 저장 경로를 고정. v0.0 (구 프로젝트명 `token-eater-pet`) 데이터 호환 위해 의도적으로 박혀 있음. 새 설치도 동일 경로 사용.
 
 ## IPC
 
@@ -82,10 +87,11 @@ npm run postinstall  # better-sqlite3 를 Electron ABI 로 rebuild
 | 채널 | 종류 | 동작 |
 |---|---|---|
 | `pet:getSnapshot` | invoke | 현재 snapshot 반환 |
+| `pet:getStats` | invoke | EventsDb.stats(now) 반환 — lifetime / today (로컬 자정 기준) / last24h / last7d / bySource 등 |
 | `pet:openMenu` | invoke | 펫 윈도우 위에 컨텍스트 메뉴 popup (트레이와 동일 내용) |
-| `pet:event` | push (main→renderer) | PetEvent 매번 전달 |
+| `pet:event` | push (main→renderer) | PetEvent 매번 전달. 펫 윈도우 + Stats 윈도우 둘 다에 broadcast |
 
-preload (`electron/preload.ts`) 가 `window.pet.{getSnapshot, subscribe, openMenu}` 으로 노출. renderer 의 `usePetState` 훅이 첫 fetch + 이벤트 구독.
+preload (`electron/preload.ts`) 가 `window.pet.{getSnapshot, getStats, subscribe, openMenu}` 으로 노출. renderer 의 `usePetState` / `useTokensToday` / `StatsView` 훅이 각각 사용.
 
 ## 저장 패턴
 
@@ -105,7 +111,8 @@ preload (`electron/preload.ts`) 가 `window.pet.{getSnapshot, subscribe, openMen
 - 테이블 events: 토큰 수치 + dedup 키 + 메타.
 - UNIQUE INDEX (message_id, request_id) WHERE both NOT NULL.
 - `insert(e)`: INSERT OR IGNORE → changes() 가 1 이면 신규.
-- `sumSince(ts)`: 통계용.
+- `sumSince(ts)`: TokenSum (input/output/cacheRead/cacheCreate) 반환.
+- `stats(now)`: EventStats — `lifetime` / `today` (로컬 자정 이후) / `last24h` (rolling 24h) / `last7d` + `bySource` 집계 + 메타.
 
 ## shutdown 시퀀스
 
@@ -121,16 +128,19 @@ preload (`electron/preload.ts`) 가 `window.pet.{getSnapshot, subscribe, openMen
 
 ## 테스트
 
-vitest 단위 테스트 15 파일 / 73 케이스.
+vitest 단위 테스트, 약 90 케이스 (현재 수치는 `npm test` 결과로 확인).
 
 | 영역 | 파일 위치 |
 |---|---|
 | 타입 인스턴스화 | `core/types.test.ts` |
 | stages / condition / PetState FSM | `core/pet/*.test.ts` |
-| nutrition / pipeline | `core/feeding/*.test.ts` |
+| nutrition / pipeline / BurstDetector | `core/feeding/*.test.ts` |
 | JSONL 파서 / cursor / chokidar 통합 | `core/tokenSource/*.test.ts` |
-| pet-state.json / events.sqlite | `core/storage/*.test.ts` |
+| pet-state.json / events.sqlite (stats 포함) | `core/storage/*.test.ts` |
 | statusLine installer | `installers/*.test.ts` |
+| speech pickers | `renderer/data/speech.test.ts` |
+
+`vitest.config.ts` 의 include 에 `core/**`, `installers/**`, `renderer/**` 의 `*.test.ts` 셋 다 포함됨.
 
 패턴:
 - 가짜 시계 주입 (`now: () => N`).
@@ -191,13 +201,16 @@ npx prebuild-install -r node --prefix node_modules/better-sqlite3
 
 | 바꿀 것 | 파일 |
 |---|---|
-| 새 IPC 채널 | `electron/ipc.ts` + `electron/preload.ts` |
+| 새 IPC 채널 | `electron/ipc.ts` + `electron/preload.ts` + `renderer/global.d.ts` (타입 노출) |
 | 부트 순서 / 새 의존성 wiring | `electron/bootstrap.ts` |
-| 저장 경로 | `core/storage/paths.ts` |
-| 테스트 추가 | 해당 영역의 `*.test.ts` |
+| 저장 경로 (userData 고정) | `electron/main.ts` 의 `app.setPath` |
+| stats 집계 시간창 (today / 24h / 7d) | `core/storage/eventsDb.ts` |
+| Burst 감지 (renderer side) | `core/feeding/burstDetector.ts` + `renderer/hooks/useBurstDetector.ts` |
+| 테스트 추가 | 해당 영역의 `*.test.ts` (renderer 도 vitest 포함됨) |
 
 ## 참고 파일
 
-- `electron/{main.ts, bootstrap.ts, window.ts, ipc.ts, preload.ts, tray.ts}`
+- `electron/{main.ts, bootstrap.ts, window.ts, ipc.ts, preload.ts, tray.ts, statsWindow.ts}`
 - `core/storage/{petState.ts, eventsDb.ts, paths.ts}`
+- `core/feeding/{burstDetector.ts, nutrition.ts, FeedingPipeline.ts}`
 - `package.json`, `tsconfig.json`, `vite.config.ts`, `vitest.config.ts`
