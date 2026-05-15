@@ -40,9 +40,9 @@ describe('ClaudeStatusLineSource', () => {
     });
     expect(res.status).toBe(204);
     expect(events.length).toBe(1);
-    expect(events[0].tokens.output).toBe(22);
-    expect(events[0].dedupKey?.messageId).toBe('mX');
-    expect(events[0].costUsd).toBeCloseTo(0.0042);
+    expect(events[0]!.tokens.output).toBe(22);
+    expect(events[0]!.dedupKey?.messageId).toBe('mX');
+    expect(events[0]!.costUsd).toBeCloseTo(0.0042);
   });
 
   it('rejects POST with wrong token', async () => {

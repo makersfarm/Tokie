@@ -47,10 +47,10 @@ export class ClaudeStatusLineSource implements TokenSource {
 
   private handle(req: http.IncomingMessage, res: http.ServerResponse): void {
     if (req.method !== 'POST' || req.url !== '/event') {
-      res.statusCode = 404; return res.end();
+      res.statusCode = 404; res.end(); return;
     }
     if (req.headers['x-pet-token'] !== this.token) {
-      res.statusCode = 401; return res.end();
+      res.statusCode = 401; res.end(); return;
     }
     let body = '';
     req.on('data', chunk => { body += chunk; });

@@ -38,7 +38,7 @@ describe('ClaudeJsonlSource', () => {
     await src.start(e => events.push(e));
     await waitMs(400);
     expect(events.length).toBe(1);
-    expect(events[0].dedupKey?.messageId).toBe('m1');
+    expect(events[0]!.dedupKey?.messageId).toBe('m1');
   });
 
   it('detects appended lines after start', async () => {

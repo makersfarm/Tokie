@@ -59,7 +59,8 @@ export class ClaudeJsonlSource implements TokenSource {
       const lines = text.split('\n');
       // last element may be partial line; only advance offset to before it
       const complete = lines.slice(0, -1);
-      const trailingPartialBytes = Buffer.byteLength(lines[lines.length - 1], 'utf8');
+      const trailing = lines[lines.length - 1] ?? '';
+      const trailingPartialBytes = Buffer.byteLength(trailing, 'utf8');
       const newOffset = stat.size - trailingPartialBytes;
       for (const line of complete) {
         if (!line) continue;
