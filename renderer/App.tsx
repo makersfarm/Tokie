@@ -63,6 +63,23 @@ function PetView() {
   const [burstLine, setBurstLine] = useState<string | null>(null);
   const lastClickAt = useRef(0);
   const downRef = useRef<{ x: number; y: number } | null>(null);
+  const transientTimers = useRef<Set<ReturnType<typeof setTimeout>>>(new Set());
+
+  // Centralised setTimeout that auto-cleans on unmount so rapid 'fed' bursts
+  // and click greetings don't leak callbacks if the component goes away.
+  const scheduleTimer = (cb: () => void, ms: number) => {
+    const t = setTimeout(() => {
+      transientTimers.current.delete(t);
+      cb();
+    }, ms);
+    transientTimers.current.add(t);
+    return t;
+  };
+
+  useEffect(() => () => {
+    transientTimers.current.forEach(clearTimeout);
+    transientTimers.current.clear();
+  }, []);
 
   useEffect(() => {
     if (!lastEvent) return;
@@ -73,8 +90,8 @@ function PetView() {
       const yPct = 30 + Math.random() * 40;
       setBursts(b => [...b, { id, amount, xPct, yPct }]);
       setFeasting(true);
-      setTimeout(() => setBursts(b => b.filter(x => x.id !== id)), 1300);
-      setTimeout(() => setFeasting(false), 400);
+      scheduleTimer(() => setBursts(b => b.filter(x => x.id !== id)), 1300);
+      scheduleTimer(() => setFeasting(false), 400);
     } else if (lastEvent.type === 'evolved') {
       setEvo({ from: lastEvent.from, to: lastEvent.to });
     }
@@ -86,10 +103,14 @@ function PetView() {
     return () => clearTimeout(t);
   }, [evo]);
 
-  // proactive burst speech
+  // proactive burst speech — read mood at fire time, not via stale closure.
+  const moodRef = useRef(snap?.mood);
+  moodRef.current = snap?.mood;
   useEffect(() => {
-    if (burst.nonce === 0 || !snap) return;
-    setBurstLine(pickBurstLine(snap.mood));
+    if (burst.nonce === 0) return;
+    const mood = moodRef.current;
+    if (!mood) return;
+    setBurstLine(pickBurstLine(mood));
     const t = setTimeout(() => setBurstLine(null), BURST_TTL_MS);
     return () => clearTimeout(t);
   }, [burst.nonce]);
@@ -110,8 +131,8 @@ function PetView() {
     lastClickAt.current = now;
     setGreeting(pickGreeting());
     setFeasting(true);
-    setTimeout(() => setFeasting(false), 400);
-    setTimeout(() => setGreeting(null), GREETING_TTL_MS);
+    scheduleTimer(() => setFeasting(false), 400);
+    scheduleTimer(() => setGreeting(null), GREETING_TTL_MS);
   };
 
   if (!snap) return null;
