@@ -29,7 +29,8 @@ jobs:
         run: npm ci --ignore-scripts
 
       - name: Fetch Node-ABI prebuilt for better-sqlite3
-        run: npx prebuild-install -r node --prefix node_modules/better-sqlite3
+        working-directory: node_modules/better-sqlite3
+        run: npx --yes prebuild-install --runtime node
 
       - name: Type check
         run: npx tsc --noEmit
