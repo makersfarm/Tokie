@@ -6,5 +6,7 @@ contextBridge.exposeInMainWorld('pet', {
     ipcRenderer.on('pet:event', listener);
     return () => ipcRenderer.off('pet:event', listener);
   },
-  getSnapshot: () => ipcRenderer.invoke('pet:getSnapshot')
+  getSnapshot: () => ipcRenderer.invoke('pet:getSnapshot'),
+  getStats:    () => ipcRenderer.invoke('pet:getStats'),
+  openMenu:    () => ipcRenderer.invoke('pet:openMenu')
 });

@@ -1,0 +1,38 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 128">
+  <defs>
+    <radialGradient id="g3" cx="50%" cy="35%" r="65%">
+      <stop offset="0%" stop-color="#ffffff"/>
+      <stop offset="70%" stop-color="#f1efe6"/>
+      <stop offset="100%" stop-color="#a89a72"/>
+    </radialGradient>
+    <linearGradient id="comb" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#ff5a5a"/>
+      <stop offset="100%" stop-color="#a01818"/>
+    </linearGradient>
+  </defs>
+  <!-- legs -->
+  <line x1="52" y1="108" x2="52" y2="120" stroke="#c98b0d" stroke-width="3"/>
+  <line x1="76" y1="108" x2="76" y2="120" stroke="#c98b0d" stroke-width="3"/>
+  <path d="M48 120 L46 124 M52 120 L52 124 M56 120 L58 124" stroke="#c98b0d" stroke-width="2" fill="none"/>
+  <path d="M72 120 L70 124 M76 120 L76 124 M80 120 L82 124" stroke="#c98b0d" stroke-width="2" fill="none"/>
+  <!-- tail feathers -->
+  <path d="M96 78 Q116 60 110 90 Q104 84 96 88 Z" fill="#7a6a3e" stroke="#3d3520" stroke-width="1.5"/>
+  <path d="M98 82 Q120 78 108 100 Q104 92 98 92 Z" fill="#a89a72" stroke="#3d3520" stroke-width="1.5"/>
+  <!-- body -->
+  <ellipse cx="60" cy="74" rx="34" ry="32" fill="url(#g3)" stroke="#3d3520" stroke-width="2"/>
+  <!-- wing -->
+  <path d="M40 70 Q30 82 44 96 Q56 92 58 78 Z" fill="#d5cbab" stroke="#3d3520" stroke-width="1.5"/>
+  <!-- head -->
+  <circle cx="62" cy="44" r="20" fill="url(#g3)" stroke="#3d3520" stroke-width="2"/>
+  <!-- comb -->
+  <path d="M52 30 Q56 18 60 28 Q64 16 68 28 Q72 18 76 30 Z" fill="url(#comb)" stroke="#5a0a0a" stroke-width="1.2"/>
+  <!-- wattle -->
+  <path d="M66 56 Q70 64 64 64 Z" fill="#ff5a5a" stroke="#5a0a0a" stroke-width="1"/>
+  <!-- eyes -->
+  <circle cx="56" cy="44" r="3.5" fill="#fff"/>
+  <circle cx="68" cy="44" r="3.5" fill="#fff"/>
+  <circle cx="57" cy="45" r="1.8" fill="#111"/>
+  <circle cx="69" cy="45" r="1.8" fill="#111"/>
+  <!-- beak -->
+  <path d="M70 50 L80 52 L72 56 Z" fill="#f5a623" stroke="#7a5410" stroke-width="1"/>
+</svg>

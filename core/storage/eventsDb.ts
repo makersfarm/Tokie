@@ -10,6 +10,24 @@ export interface TokenSum {
   cacheCreate: number;
 }
 
+export interface SourceBreakdown extends TokenSum {
+  source: string;
+  events: number;
+}
+
+export interface EventStats {
+  events: number;
+  totalCostUsd: number;
+  firstTs: number | null;
+  lastTs: number | null;
+  lifetime: TokenSum;
+  last24h: TokenSum;
+  last7d:  TokenSum;
+  bySource: SourceBreakdown[];
+}
+
+const DAY_MS = 24 * 60 * 60 * 1000;
+
 export class EventsDb {
   private db: Database.Database;
   private insertStmt: Database.Statement;
@@ -80,6 +98,36 @@ export class EventsDb {
 
   sumSince(ts: number): TokenSum {
     return this.sumStmt.get(ts) as TokenSum;
+  }
+
+  stats(now: number): EventStats {
+    const meta = this.db.prepare(`
+      SELECT
+        COUNT(*) AS events,
+        COALESCE(SUM(cost_usd),0) AS totalCostUsd,
+        MIN(ts) AS firstTs,
+        MAX(ts) AS lastTs
+      FROM events
+    `).get() as { events: number; totalCostUsd: number; firstTs: number | null; lastTs: number | null };
+
+    const lifetime = this.sumSince(0);
+    const last24h  = this.sumSince(now - DAY_MS);
+    const last7d   = this.sumSince(now - 7 * DAY_MS);
+
+    const bySource = this.db.prepare(`
+      SELECT
+        source,
+        COUNT(*) AS events,
+        COALESCE(SUM(input_tokens),0)  AS input,
+        COALESCE(SUM(output_tokens),0) AS output,
+        COALESCE(SUM(cache_read),0)    AS cacheRead,
+        COALESCE(SUM(cache_create),0)  AS cacheCreate
+      FROM events
+      GROUP BY source
+      ORDER BY events DESC
+    `).all() as SourceBreakdown[];
+
+    return { ...meta, lifetime, last24h, last7d, bySource };
   }
 
   close(): void {

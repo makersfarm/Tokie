@@ -29,6 +29,7 @@ describe('types module exports', () => {
       lastFedAt: null,
       lastCursors: {},
       windowPos: { x: 100, y: 100 },
+      windowSize: { w: 220, h: 220 },
       createdAt: 0
     };
     expect(s.phase).toBe(0);

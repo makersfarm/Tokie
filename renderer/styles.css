@@ -5,14 +5,32 @@ html, body, #root {
   -webkit-app-region: drag;
   user-select: none;
 }
+.root { width: 100%; height: 100%; }
 .pet {
   position: absolute; left: 50%; top: 50%;
   transform: translate(-50%, -50%);
-  font-size: 96px;
-  -webkit-app-region: no-drag;
-  cursor: pointer;
+  width: 80%; height: 80%;
+  display: flex; align-items: center; justify-content: center;
+  -webkit-app-region: drag;
+  cursor: grab;
   transition: transform 0.15s;
+  filter: drop-shadow(0 4px 6px rgba(0,0,0,0.35));
 }
+.pet:active { cursor: grabbing; }
+.pet-sprite {
+  width: 100%; height: 100%;
+  object-fit: contain;
+  image-rendering: -webkit-optimize-contrast;
+  pointer-events: none;
+  -webkit-user-drag: none;
+}
+.pet-overlay {
+  position: absolute; top: -8px; right: -8px;
+  font-size: 26px;
+  text-shadow: 0 0 4px rgba(0,0,0,0.6);
+}
+.pet.mood-sleepy .pet-sprite { filter: brightness(0.85) saturate(0.7); }
+.pet.mood-sad    .pet-sprite { filter: brightness(0.9) saturate(0.6); }
 .pet.feasting { animation: bounce 0.4s ease; }
 @keyframes bounce {
   0%   { transform: translate(-50%, -50%) scale(1); }
@@ -43,3 +61,36 @@ html, body, #root {
   font: 14px monospace;
   -webkit-app-region: no-drag;
 }
+
+/* Stats view (separate window, ?view=stats) */
+.stats {
+  position: fixed; inset: 0;
+  background: #1c1c1f;
+  color: #e5e5e7;
+  font: 13px -apple-system, "SF Pro Text", system-ui, sans-serif;
+  padding: 18px 22px 80px;
+  overflow-y: auto;
+  -webkit-app-region: no-drag;
+  user-select: text;
+}
+.stats h1 { font-size: 18px; margin: 0 0 14px; font-weight: 600; }
+.stats h2 { font-size: 12px; text-transform: uppercase; letter-spacing: 0.06em;
+            color: #9999a0; margin: 18px 0 6px; font-weight: 600; }
+.stats section { border-top: 1px solid #2c2c30; padding-top: 6px; }
+.stats section:first-of-type { border-top: none; }
+.stats table { width: 100%; border-collapse: collapse; font-variant-numeric: tabular-nums; }
+.stats th { text-align: left; font-weight: 500; color: #9999a0; padding: 3px 8px 3px 0;
+            white-space: nowrap; }
+.stats td { padding: 3px 0; text-align: right; }
+.stats thead th { color: #c5c5cb; font-weight: 600; text-align: right; }
+.stats thead th:first-child { text-align: left; }
+.stats .empty { color: #6e6e74; font-style: italic; }
+.stats .loading { display: flex; align-items: center; justify-content: center;
+                  width: 100%; height: 100%; color: #6e6e74; }
+.stats .refresh {
+  position: fixed; right: 22px; bottom: 22px;
+  background: #2c2c30; color: #e5e5e7; border: 1px solid #3c3c40;
+  padding: 8px 18px; border-radius: 6px; font: inherit;
+  cursor: pointer;
+}
+.stats .refresh:hover { background: #3c3c40; }

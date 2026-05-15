@@ -15,7 +15,8 @@ export function makeDefaultSnapshot(now: number): PetSnapshot {
     lastTickAt: now,
     lastFedAt: null,
     lastCursors: {},
-    windowPos: { x: 1500, y: 80 }
+    windowPos: { x: 1500, y: 80 },
+    windowSize: { w: 220, h: 220 }
   };
 }
 

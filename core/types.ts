@@ -45,6 +45,7 @@ export interface PetSnapshot {
   lastFedAt: number | null;
   lastCursors: Record<string, CursorRecord>;
   windowPos: { x: number; y: number };
+  windowSize: { w: number; h: number };
 }
 
 export type PetEvent =

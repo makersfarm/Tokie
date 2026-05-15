@@ -1,0 +1,28 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 128">
+  <defs>
+    <radialGradient id="g2" cx="50%" cy="40%" r="60%">
+      <stop offset="0%" stop-color="#fff6cc"/>
+      <stop offset="60%" stop-color="#ffd24a"/>
+      <stop offset="100%" stop-color="#c98b0d"/>
+    </radialGradient>
+  </defs>
+  <!-- feet -->
+  <path d="M50 110 L46 118 M50 110 L52 118 M50 110 L56 118" stroke="#a05a0c" stroke-width="2.5" fill="none"/>
+  <path d="M78 110 L74 118 M78 110 L80 118 M78 110 L84 118" stroke="#a05a0c" stroke-width="2.5" fill="none"/>
+  <!-- body -->
+  <ellipse cx="64" cy="72" rx="34" ry="36" fill="url(#g2)" stroke="#6b4408" stroke-width="2"/>
+  <!-- wing -->
+  <path d="M40 70 Q34 80 42 92 Q50 88 52 78 Z" fill="#e9b020" stroke="#6b4408" stroke-width="1.5"/>
+  <!-- eyes -->
+  <circle cx="54" cy="60" r="6" fill="#fff"/>
+  <circle cx="76" cy="60" r="6" fill="#fff"/>
+  <circle cx="56" cy="62" r="3" fill="#111"/>
+  <circle cx="78" cy="62" r="3" fill="#111"/>
+  <!-- beak -->
+  <path d="M58 74 L64 84 L70 74 Z" fill="#f5a623" stroke="#7a5410" stroke-width="1.2"/>
+  <!-- tuft -->
+  <path d="M56 32 Q64 18 72 32 Q66 28 64 36 Q62 28 56 32 Z" fill="#ffd24a" stroke="#6b4408" stroke-width="1.5"/>
+  <!-- blush -->
+  <circle cx="44" cy="74" r="3" fill="#ff8da1" opacity="0.7"/>
+  <circle cx="84" cy="74" r="3" fill="#ff8da1" opacity="0.7"/>
+</svg>

@@ -12,7 +12,8 @@ const baseSnap = {
   lastTickAt: 0,
   lastFedAt: null,
   lastCursors: {},
-  windowPos: { x: 0, y: 0 }
+  windowPos: { x: 0, y: 0 },
+  windowSize: { w: 220, h: 220 }
 };
 
 describe('PetState.feed', () => {

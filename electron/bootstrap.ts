@@ -13,8 +13,9 @@ import { ClaudeStatusLineSource } from '../core/tokenSource/claudeStatusLine';
 import { ClaudeJsonlSource } from '../core/tokenSource/claudeJsonl';
 import { installStatusLine, uninstallStatusLine } from '../installers/statusLine';
 import { wireIpc } from './ipc';
-import { createTray, TrayCallbacks } from './tray';
+import { createTray, buildMenuTemplate, TrayCallbacks } from './tray';
 import { createPetWindow } from './window';
+import { createStatsWindow } from './statsWindow';
 
 export interface BootResult {
   window: BrowserWindow;
@@ -72,23 +73,29 @@ export async function bootstrap(): Promise<BootResult> {
     rendererUrl:  process.env.VITE_DEV_SERVER_URL ?? null,
     rendererFile: process.env.VITE_DEV_SERVER_URL ? null
                     : path.join(__dirname, '../dist/index.html'),
-    pos: snap.windowPos
+    pos: snap.windowPos,
+    size: snap.windowSize
   });
-  const unwire = wireIpc(win, pet);
 
-  // persist window position
-  win.on('moved', () => {
-    const pos = win.getPosition();
-    const x = pos[0] ?? pet.snapshot.windowPos.x;
-    const y = pos[1] ?? pet.snapshot.windowPos.y;
-    pet.load({ ...pet.snapshot, windowPos: { x, y } });
-  });
+  let statsWin: BrowserWindow | null = null;
+  const openStats = () => {
+    if (statsWin && !statsWin.isDestroyed()) {
+      statsWin.focus();
+      return;
+    }
+    statsWin = createStatsWindow({
+      preloadPath:  path.join(__dirname, 'preload.js'),
+      rendererUrl:  process.env.VITE_DEV_SERVER_URL ?? null,
+      rendererFile: process.env.VITE_DEV_SERVER_URL ? null
+                      : path.join(__dirname, '../dist/index.html')
+    });
+    statsWin.on('closed', () => { statsWin = null; });
+  };
 
   const trayCb: TrayCallbacks = {
-    onShowStats: () => win.show(),
+    onShowStats: openStats,
     onResetPet:  () => {
       pet.load(makeDefaultSnapshot(Date.now()));
-      // Re-snap JSONL offsets to current file sizes so existing history isn't replayed
       for (const [file] of Object.entries(jsonlSrc.exportCursors())) {
         try {
           const size = fs.statSync(file).size;
@@ -103,6 +110,33 @@ export async function bootstrap(): Promise<BootResult> {
     },
     onQuit: () => app.quit()
   };
+  const unwire = wireIpc({
+    pet, db,
+    menuTemplate: () => buildMenuTemplate(trayCb),
+    petWindow: win,
+    broadcastWindows: () => {
+      const list: BrowserWindow[] = [win];
+      if (statsWin && !statsWin.isDestroyed()) list.push(statsWin);
+      return list;
+    }
+  });
+
+  // persist window position
+  win.on('moved', () => {
+    const pos = win.getPosition();
+    const x = pos[0] ?? pet.snapshot.windowPos.x;
+    const y = pos[1] ?? pet.snapshot.windowPos.y;
+    pet.load({ ...pet.snapshot, windowPos: { x, y } });
+  });
+
+  // persist window size
+  win.on('resized', () => {
+    const sz = win.getSize();
+    const w = sz[0] ?? pet.snapshot.windowSize.w;
+    const h = sz[1] ?? pet.snapshot.windowSize.h;
+    pet.load({ ...pet.snapshot, windowSize: { w, h } });
+  });
+
   const tray = createTray(trayCb);
 
   return {
