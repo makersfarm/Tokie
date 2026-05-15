@@ -12,7 +12,7 @@ export function createStatsWindow(opts: StatsWindowOpts): BrowserWindow {
     height: 600,
     minWidth: 360,
     minHeight: 400,
-    title: 'Token Eater Pet — Stats',
+    title: 'Tokie — Stats',
     backgroundColor: '#1c1c1f',
     webPreferences: {
       preload: opts.preloadPath,

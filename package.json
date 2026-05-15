@@ -1,7 +1,8 @@
 {
-  "name": "token-eater-pet",
-  "version": "1.0.0",
-  "description": "",
+  "name": "tokie",
+  "productName": "Tokie",
+  "version": "0.1.0",
+  "description": "Cute desktop pet that grows on your Claude Code token usage.",
   "main": "dist-electron/main.js",
   "directories": {
     "doc": "docs"

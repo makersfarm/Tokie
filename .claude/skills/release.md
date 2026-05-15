@@ -1,13 +1,15 @@
 ---
-name: token-eater-pet-release
-description: token-eater-pet 데스크탑 앱을 GitHub Releases 로 빌드·배포. electron-builder 셋업 → 버전 bump → .dmg/.zip 빌드 → 릴리스 업로드. 트리거 키워드 "release", "ship", "build app", "package", "publish", "다른 사람들이 쓰게".
+name: tokie-release
+description: Tokie 데스크탑 앱을 GitHub Releases 로 빌드·배포. electron-builder 셋업 → 버전 bump → .dmg/.zip 빌드 → 릴리스 업로드. 트리거 키워드 "release", "ship", "build app", "package", "publish", "다른 사람들이 쓰게".
 ---
 
-# token-eater-pet 배포
+# Tokie 배포
+
+> v0.0 까지 프로젝트명은 `token-eater-pet`. v0.1 부터 **Tokie**. 저장 경로(userData)는 호환 위해 `token-eater-pet/` 유지. appId 도 마찬가지.
 
 ## 0. 왜 npm 이 아니라 GitHub Releases 인가
 
-token-eater-pet 은 **Electron 데스크탑 앱**. 즉 사용자가 받는 건:
+Tokie 는 **Electron 데스크탑 앱**. 즉 사용자가 받는 건:
 
 - macOS: `.dmg` 또는 `.zip`
 - Windows: `.exe` (NSIS installer) 또는 portable
@@ -45,7 +47,7 @@ npm install --save-dev electron-builder
   },
   "build": {
     "appId": "dev.iksung.token-eater-pet",
-    "productName": "Token Eater Pet",
+    "productName": "Tokie",
     "files": [
       "dist-electron/**/*",
       "dist/**/*",
@@ -65,7 +67,7 @@ npm install --save-dev electron-builder
     "publish": {
       "provider": "github",
       "owner": "<github-username>",
-      "repo": "token-eater-pet"
+      "repo": "tokie"
     }
   }
 }
@@ -125,10 +127,10 @@ GH_TOKEN=$(gh auth token) npm run release
 ### 옵션 B: gh release create 수동
 
 ```bash
-gh release create v0.0.2 \
-  release/Token\ Eater\ Pet-0.0.2.dmg \
-  release/Token\ Eater\ Pet-0.0.2-mac.zip \
-  --title "v0.0.2" \
+gh release create v0.1.0 \
+  release/Tokie-0.1.0.dmg \
+  release/Tokie-0.1.0-mac.zip \
+  --title "v0.1.0" \
   --notes-file CHANGELOG.md
 ```
 
@@ -151,9 +153,9 @@ git log --oneline $(git describe --tags --abbrev=0 HEAD^)..HEAD
 ```md
 ## 다운로드
 
-[GitHub Releases](https://github.com/<owner>/token-eater-pet/releases/latest) 에서 OS 에 맞는 빌드 받기:
+[GitHub Releases](https://github.com/<owner>/tokie/releases/latest) 에서 OS 에 맞는 빌드 받기:
 
-- macOS: `Token Eater Pet-<버전>-mac.dmg`
+- macOS: `Tokie-<버전>-mac.dmg`
 - (Windows/Linux 빌드는 TODO)
 
 ### macOS — 서명 없는 빌드 우회
@@ -168,7 +170,7 @@ git log --oneline $(git describe --tags --abbrev=0 HEAD^)..HEAD
 
 ## 8. 빌드 전 체크리스트
 
-- [ ] `npm test` 73/73 통과.
+- [ ] `npm test` 전부 통과 (현재 ~88 개).
 - [ ] `npm run postinstall` 으로 Electron ABI rebuild.
 - [ ] pet-state.json / events.sqlite 같은 개인 데이터가 `files` 에 포함되지 않는지 (userData 만 쓰니까 자동으로 빠지지만 한 번 확인).
 - [ ] PET_TOKEN 같은 시크릿 하드코딩 없는지 (`grep -rn "PET_TOKEN" .` 결과 코드만).

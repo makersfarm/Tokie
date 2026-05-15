@@ -80,7 +80,7 @@ function makeIcon(): Electron.NativeImage {
 
 export function createTray(cb: TrayCallbacks): Tray {
   const tray = new Tray(makeIcon());
-  tray.setToolTip('Token Eater Pet');
+  tray.setToolTip('Tokie');
   tray.setContextMenu(Menu.buildFromTemplate(buildMenuTemplate(cb)));
   return tray;
 }

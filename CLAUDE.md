@@ -1,11 +1,12 @@
-# CLAUDE.md — token-eater-pet
+# CLAUDE.md — Tokie
 
 > 미래의 Claude 세션이 코드를 처음부터 안 읽고도 프로젝트 그림을 잡을 수 있게 하는 메모.
 > 사람용 상세 문서는 [`docs/`](./docs/README.md) 카테고리별로 분리돼 있음. 항상 거기를 먼저 참고.
+> v0.0 까지의 이름은 `token-eater-pet`. v0.1 부터 **Tokie** 로 리네임. 저장 경로(`userData`)는 호환 위해 그대로 `token-eater-pet/` 유지 — `electron/main.ts` 의 `app.setPath` 참고.
 
 ## 한 줄
 
-Claude Code 토큰을 먹고 자라는 Electron 데스크탑 펫. always-on-top 투명 윈도우. statusLine hook(push) + JSONL 파일 감시(pull) 하이브리드로 토큰 수집.
+**Tokie** — Claude Code 토큰을 먹고 자라는 Electron 데스크탑 펫. always-on-top 투명 윈도우. statusLine hook(push) + JSONL 파일 감시(pull) 하이브리드로 토큰 수집.
 
 ## 문서 카테고리 (`docs/`)
 

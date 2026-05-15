@@ -1,6 +1,8 @@
-# token-eater-pet
+# Tokie
 
 Claude Code(추후 Codex 등) 사용 토큰을 먹고 자라는 데스크탑 펫. always-on-top 투명 윈도우로 떠 있으며, statusLine hook + JSONL 파일 감시로 토큰 사용량을 실시간 수집해 펫의 XP/condition/mood 에 반영한다.
+
+> v0.0 시절 프로젝트명은 `token-eater-pet`. v0.1 부터 **Tokie** 로 리네임. 디렉토리/저장 경로는 호환 위해 그대로 유지 (`~/Library/Application Support/token-eater-pet/`).
 
 ## 카테고리
 

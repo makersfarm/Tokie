@@ -1,5 +1,11 @@
 import { app } from 'electron';
+import path from 'node:path';
 import { bootstrap } from './bootstrap';
+
+// Preserve userData path across the v0.0 → v0.1 rename
+// ("token-eater-pet" → "tokie"). New installs also adopt this path so the
+// stable identity isn't tied to a future rename of the app display name.
+app.setPath('userData', path.join(app.getPath('appData'), 'token-eater-pet'));
 
 let shutdownFn: (() => Promise<void>) | null = null;
 

@@ -53,6 +53,8 @@ OS 별 위치:
 | Linux | `~/.config/token-eater-pet/` |
 | Windows | `%APPDATA%\token-eater-pet\` |
 
+> 폴더 이름이 앱 표시명 (`Tokie`) 과 다른 이유: v0.0 까지 프로젝트명이 `token-eater-pet` 이었음. v0.1 부터 리네임했지만 기존 사용자 데이터(펫 상태, events.db) 호환 위해 `electron/main.ts` 의 `app.setPath('userData', ...)` 로 경로를 고정. 새 설치도 같은 경로 사용 — 정체성 stable.
+
 `core/storage/paths.ts` 의 `resolveStoragePaths(userDataDir)` 가 경로 산출. 변경 시 여기만 손대면 됨.
 
 ## electron-rebuild (native module)
@@ -69,7 +71,7 @@ OS 별 위치:
 
 ### 안 보일 때 체크
 
-1. **시스템 설정 → 제어 센터 → "메뉴 막대 전용"** 섹션에 token-eater-pet 항목이 있으면 켜기.
+1. **시스템 설정 → 제어 센터 → "메뉴 막대 전용"** 섹션에 Tokie 항목이 있으면 켜기.
 2. **MacBook 노치 가려짐** — 메뉴바 우측에 다른 앱이 너무 많으면 노치 뒤로 밀려서 안 보임. Bartender / Hidden Bar 같은 도구로 다른 메뉴바 앱을 숨겨 자리 확보.
 3. **그래도 안 보이면 우클릭 컨텍스트 메뉴 사용** — 펫 본체 우클릭하면 트레이 메뉴와 동일한 메뉴가 popup. 트레이는 사실상 부가 기능.
 

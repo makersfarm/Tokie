@@ -56,7 +56,7 @@ export function StatsView() {
 
   return (
     <div className="stats">
-      <h1>Token Eater Pet</h1>
+      <h1>Tokie</h1>
 
       <section>
         <h2>Pet</h2>
