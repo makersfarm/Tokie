@@ -1,0 +1,5 @@
+{"type":"user","sessionId":"sess-A","message":{"id":"u1","role":"user","content":"hi"}}
+{"type":"assistant","sessionId":"sess-A","message":{"id":"m1","role":"assistant","content":"hello","usage":{"input_tokens":12,"output_tokens":7,"cache_read_input_tokens":0,"cache_creation_input_tokens":0},"model":"claude-opus-4-7"},"requestId":"r1"}
+{"type":"assistant","sessionId":"sess-A","message":{"id":"m2","role":"assistant","usage":{"input_tokens":3,"output_tokens":5,"cache_read_input_tokens":10,"cache_creation_input_tokens":0},"model":"claude-opus-4-7"},"requestId":"r2"}
+not-json-this-line-is-broken
+{"type":"assistant","sessionId":"sess-A","message":{"id":"m3","role":"assistant","usage":{"input_tokens":0,"output_tokens":0,"cache_read_input_tokens":0,"cache_creation_input_tokens":0},"model":"claude-opus-4-7"},"requestId":"r3"}
