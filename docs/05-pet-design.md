@@ -1,6 +1,6 @@
 # 05. 펫 디자인
 
-> 현재 펫 비주얼은 손코딩 SVG 4종 (대충 만든 상태) + 이모지 mood 오버레이. EatingBurst / EvolveCutscene 두 가지 transient 이펙트. 향후 제대로 된 아트로 교체 예정.
+> 현재 펫 비주얼은 손코딩 SVG 4종 (대충 만든 상태) + 이모지 mood 오버레이 + 위쪽 stage badge + 아래쪽 lifetime/threshold readout + 얇은 progress bar. transient 이펙트는 EatingBurst (랜덤 위치 K-format 토큰 표시), 클릭/burst SpeechBubble, EvolveCutscene. 향후 제대로 된 아트로 교체 예정.
 
 ## SVG 스프라이트
 
@@ -56,21 +56,59 @@ const SPRITE: Record<Phase, string> = {
 
 condition 낮을수록 펫이 어둡고 채도 낮게 보임.
 
-## 이펙트
+## 정적 정보 요소 (idle 시 항상 표시)
 
-### EatingBurst
+### Stage badge
+
+`renderer/components/StageBadge.tsx` — 펫 위쪽 중앙. phase 별 아이콘 + 이름 한 단어.
+
+| phase | 아이콘 | 이름 |
+|---|---|---|
+| 0 | 🥚 | Egg |
+| 1 | 🐣 | Baby |
+| 2 | 🐤 | Middle |
+| 3 | 🐔 | Final |
+
+윈도우 폭 ≤ 140px 이면 이름 텍스트 숨기고 아이콘만. 10px 반투명 흰 글자.
+
+### Lifetime / threshold readout
+
+App.tsx 안의 `.token-today` div. K/M 포맷의 `{lifetimeXP} / {nextThreshold}` (Final 일 땐 Final 입성 임계값 = 3M 가 분모). 600 weight 13px monospace, 펫 아래·progress bar 위에 위치. K 는 소수점 1자리, M 은 소수점 2자리.
+
+### Progress bar
+
+`renderer/components/PetProgressBar.tsx` — 펫 하단 얇은 막대 (높이 2px, 폭 60%). 채워진 비율 = `lifetimeXP / nextThreshold`. mood 별 색감 분기 (happy=골드, normal=흰, sleepy/sad=회색). 숫자 없음 — 위쪽 readout 이 숫자 담당.
+
+## Transient 이펙트
+
+### EatingBurst (랜덤 위치 토큰 popup)
 
 `renderer/components/EatingBurst.tsx`:
 
 ```tsx
-export function EatingBurst({ amount }) {
-  return <div className="burst">+{amount.toFixed(0)} 🍴</div>;
+export function EatingBurst({ amount, xPct, yPct }) {
+  return <div className="burst" style={{ left: `${xPct}%`, top: `${yPct}%` }}>
+    +{fmtK(amount)}
+  </div>;
 }
 ```
 
-- App.tsx 가 `fed` 이벤트 받을 때마다 burst 추가, 1초 후 제거.
-- CSS keyframe `floatUp` — 위로 떠오르며 fade-out.
-- 골드 색상, 14px monospace.
+- App.tsx 가 `fed` 이벤트 받을 때마다 burst 추가, 1.3초 후 제거.
+- 좌표는 펫 중심 주변 30–70% 범위 랜덤 (`xPct`, `yPct`).
+- K/M 포맷 (영양가 단위, 토큰 환산 전).
+- CSS keyframe `floatUp` — 살짝 떠오르며 fade-in/out.
+- 600 weight 14px monospace, 골드 색상.
+
+### SpeechBubble
+
+`renderer/components/SpeechBubble.tsx`, 두 가지 variant:
+
+| variant | 트리거 | TTL | 풀 |
+|---|---|---|---|
+| `greeting` | 펫 좌클릭 (drag-vs-click 5px threshold, 300ms cooldown) | 800ms | `renderer/data/speech.ts` 의 `GREETINGS` ("고마워✨", "헤헤", "쓰담쓰담~" 등) |
+| `proactive` | 토큰 폭증 감지 (5분 안 nutrition ≥ 50k, 2분 cooldown) | 2.5초 | `BURST_BY_MOOD` — happy / normal / sleepy/sad 별 분기 |
+
+흰 반투명 둥근 말풍선, 펫 위쪽에 표시. `bubblePop` keyframe 으로 가볍게 등장. burst 감지는 `core/feeding/burstDetector.ts` (pure module, vitest 커버) + `renderer/hooks/useBurstDetector.ts` 가 PetEvent 스트림에 붙음.
 
 ### EvolveCutscene
 
@@ -103,9 +141,9 @@ export function EatingBurst({ amount }) {
 
 `.pet { filter: drop-shadow(0 4px 6px rgba(0,0,0,0.35)); }` — 투명 배경 위에서 펫이 뜬 것처럼 보이게.
 
-## HUD 와의 관계
+## v2 에서 제거된 요소
 
-HUD ([06-ui.md](./06-ui.md#hud) 참고) 는 좌하단 텍스트 (XP/cond/mood). 펫 본체와 별개로 렌더링되지만 동일한 mood 값을 표시.
+- 기존 좌하단 `HUD.tsx` 3줄 monospace 텍스트 — 제거됨. 정보는 (a) 항상 보이는 lifetime/threshold readout, (b) 호버 시 InfoBubble (XP·cond·today), (c) 우클릭 → Show Stats 로 분산.
 
 ## 아트 교체 가이드
 
@@ -134,13 +172,22 @@ PNG 도 가능하지만 SVG 가 리사이즈 시 깔끔. 둘 다 쓸거면 Pet.t
 |---|---|
 | 스프라이트 그림 | `renderer/public/sprites/phase[0-3].svg` |
 | 스프라이트 매핑 / 오버레이 이모지 | `renderer/components/Pet.tsx` |
+| Stage badge 아이콘/이름 | `renderer/components/StageBadge.tsx` (ICON 맵) + `core/pet/stages.ts` (이름) |
+| Lifetime readout 포맷 / 위치 | `renderer/App.tsx` (`fmtK`, `.token-today` div) + `renderer/styles.css` (`.token-today`) |
+| Progress bar 색감 / 굵기 | `renderer/components/PetProgressBar.tsx` + `renderer/styles.css` (`.progress`, `.progress-fill`) |
+| EatingBurst 랜덤 범위 / TTL | `renderer/App.tsx` 의 fed 핸들러 (`xPct/yPct` 계산, setTimeout 1300ms) |
+| Speech bubble 풀 / TTL | `renderer/data/speech.ts` (풀) + `renderer/App.tsx` (`GREETING_TTL_MS`, `BURST_TTL_MS`) |
+| Burst 감지 임계값 / cooldown | `core/feeding/burstDetector.ts` 의 `THRESHOLD`, `COOLDOWN_MS`, `WINDOW_MS` |
 | mood 필터 / bounce / drop-shadow | `renderer/styles.css` |
-| 진화/먹기 이펙트 시간 / 텍스트 | `renderer/components/{EvolveCutscene, EatingBurst}.tsx`, `renderer/App.tsx` 의 setTimeout |
+| 진화 이펙트 시간 / 텍스트 | `renderer/components/EvolveCutscene.tsx` + `renderer/App.tsx` 의 setTimeout |
 | stage 이름 (cutscene 에 표시됨) | `core/pet/stages.ts` 의 `STAGES[].name` |
 
 ## 참고 파일
 
 - `renderer/public/sprites/phase0.svg` ~ `phase3.svg`
-- `renderer/components/{Pet, EatingBurst, EvolveCutscene}.tsx`
+- `renderer/components/{Pet, StageBadge, PetProgressBar, EatingBurst, SpeechBubble, InfoBubble, EvolveCutscene}.tsx`
+- `renderer/data/speech.ts`
+- `renderer/hooks/{useHover, useBurstDetector, useTokensToday}.ts`
+- `core/feeding/burstDetector.ts`
 - `renderer/App.tsx`
 - `renderer/styles.css`
