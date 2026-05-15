@@ -39,15 +39,20 @@ html, body, #root {
 }
 
 .burst {
-  position: absolute; left: 50%; top: 50%;
-  transform: translate(-50%, -50%);
-  font-size: 14px; color: gold;
-  animation: floatUp 1s ease-out forwards;
+  position: absolute;
+  font: 600 14px ui-monospace, "SF Mono", monospace;
+  color: gold;
+  text-shadow: 0 0 4px rgba(0,0,0,0.85);
+  animation: floatUp 1.2s ease-out forwards;
   pointer-events: none;
+  -webkit-app-region: no-drag;
+  white-space: nowrap;
+  transform: translate(-50%, -50%);
 }
 @keyframes floatUp {
-  0%   { opacity: 1; transform: translate(-50%, -50%); }
-  100% { opacity: 0; transform: translate(-50%, -160%); }
+  0%   { opacity: 0; transform: translate(-50%, -40%) scale(0.85); }
+  15%  { opacity: 1; transform: translate(-50%, -50%) scale(1); }
+  100% { opacity: 0; transform: translate(-50%, -120%) scale(1); }
 }
 .cutscene {
   position: absolute; inset: 0;
@@ -113,11 +118,11 @@ html, body, #root {
   pointer-events: none;
 }
 .token-today {
-  position: absolute; bottom: 8px; left: 50%;
+  position: absolute; bottom: 9px; left: 50%;
   transform: translateX(-50%);
-  font: 9px ui-monospace, "SF Mono", monospace;
-  color: rgba(255,255,255,0.75);
-  text-shadow: 0 0 3px rgba(0,0,0,0.9);
+  font: 600 13px ui-monospace, "SF Mono", monospace;
+  color: rgba(255,255,255,0.92);
+  text-shadow: 0 0 4px rgba(0,0,0,0.95);
   -webkit-app-region: no-drag;
   pointer-events: none;
   white-space: nowrap;
