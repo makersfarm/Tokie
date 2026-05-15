@@ -128,7 +128,7 @@ preload (`electron/preload.ts`) 가 `window.pet.{getSnapshot, getStats, subscrib
 
 ## 테스트
 
-vitest 단위 테스트, 약 90 케이스 (현재 수치는 `npm test` 결과로 확인).
+vitest 단위 테스트, 현재 88 케이스 / 17 파일.
 
 | 영역 | 파일 위치 |
 |---|---|

@@ -105,8 +105,7 @@ export async function bootstrap(): Promise<BootResult> {
     },
     onWipeAll:   () => {
       pet.load(makeDefaultSnapshot(Date.now()));
-      db.close();
-      fs.rmSync(paths.eventsDbFile, { force: true });
+      db.clear();
     },
     onQuit: () => app.quit()
   };

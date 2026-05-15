@@ -75,8 +75,8 @@ npm run postinstall  # better-sqlite3 → Electron ABI rebuild
 | `core/pet/`, `core/feeding/`, phase/condition 상수 | `docs/02-pet.md` |
 | `electron/bootstrap.ts`, `ipc.ts`, `core/storage/`, 테스트 패턴, `package.json` scripts | `docs/03-implementation.md` |
 | `installers/`, `core/storage/paths.ts`, tray 권한, Reset/Wipe 동작 | `docs/04-permissions-settings.md` |
-| `renderer/public/sprites/`, `renderer/components/{Pet,EatingBurst,EvolveCutscene}.tsx`, `renderer/styles.css` 의 mood/bounce/cutscene | `docs/05-pet-design.md` |
-| `electron/{window,tray,ipc,preload}.ts`, `renderer/App.tsx`, `renderer/components/HUD.tsx`, drag/resize 관련 CSS | `docs/06-ui.md` |
+| `renderer/public/sprites/`, `renderer/components/{Pet,StageBadge,PetProgressBar,EatingBurst,SpeechBubble,InfoBubble,EvolveCutscene}.tsx`, `renderer/data/speech.ts`, `renderer/hooks/useBurstDetector.ts`, `core/feeding/burstDetector.ts`, `renderer/styles.css` 의 mood/bounce/cutscene | `docs/05-pet-design.md` |
+| `electron/{window,tray,ipc,preload,statsWindow}.ts`, `renderer/App.tsx`, hover/click threshold·readout·info bubble 관련 (`renderer/hooks/useHover.ts`, `useTokensToday.ts`), drag/resize 관련 CSS | `docs/06-ui.md` |
 
 새 카테고리가 생기면 `docs/README.md` 의 표와 이 표 둘 다 갱신.
 

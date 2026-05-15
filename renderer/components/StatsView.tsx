@@ -11,6 +11,7 @@ interface EventStats {
   firstTs: number | null;
   lastTs:  number | null;
   lifetime: TokenSum;
+  today:    TokenSum;
   last24h:  TokenSum;
   last7d:   TokenSum;
   bySource: SourceBreakdown[];
@@ -92,13 +93,13 @@ export function StatsView() {
       <section className="windows">
         <h2>Recent</h2>
         <table>
-          <thead><tr><th></th><th>Last 24h</th><th>Last 7d</th></tr></thead>
+          <thead><tr><th></th><th>Today</th><th>Last 24h</th><th>Last 7d</th></tr></thead>
           <tbody>
-            <tr><th>Input</th>        <td>{fmtNum(stats.last24h.input)}</td><td>{fmtNum(stats.last7d.input)}</td></tr>
-            <tr><th>Output</th>       <td>{fmtNum(stats.last24h.output)}</td><td>{fmtNum(stats.last7d.output)}</td></tr>
-            <tr><th>Cache read</th>   <td>{fmtNum(stats.last24h.cacheRead)}</td><td>{fmtNum(stats.last7d.cacheRead)}</td></tr>
-            <tr><th>Cache create</th> <td>{fmtNum(stats.last24h.cacheCreate)}</td><td>{fmtNum(stats.last7d.cacheCreate)}</td></tr>
-            <tr><th>Total</th>        <td>{fmtNum(tokenTotal(stats.last24h))}</td><td>{fmtNum(tokenTotal(stats.last7d))}</td></tr>
+            <tr><th>Input</th>        <td>{fmtNum(stats.today.input)}</td>        <td>{fmtNum(stats.last24h.input)}</td>        <td>{fmtNum(stats.last7d.input)}</td></tr>
+            <tr><th>Output</th>       <td>{fmtNum(stats.today.output)}</td>       <td>{fmtNum(stats.last24h.output)}</td>       <td>{fmtNum(stats.last7d.output)}</td></tr>
+            <tr><th>Cache read</th>   <td>{fmtNum(stats.today.cacheRead)}</td>    <td>{fmtNum(stats.last24h.cacheRead)}</td>    <td>{fmtNum(stats.last7d.cacheRead)}</td></tr>
+            <tr><th>Cache create</th> <td>{fmtNum(stats.today.cacheCreate)}</td>  <td>{fmtNum(stats.last24h.cacheCreate)}</td>  <td>{fmtNum(stats.last7d.cacheCreate)}</td></tr>
+            <tr><th>Total</th>        <td>{fmtNum(tokenTotal(stats.today))}</td>  <td>{fmtNum(tokenTotal(stats.last24h))}</td>  <td>{fmtNum(tokenTotal(stats.last7d))}</td></tr>
           </tbody>
         </table>
       </section>

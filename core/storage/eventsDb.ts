@@ -107,6 +107,11 @@ export class EventsDb {
     return this.sumStmt.get(ts) as TokenSum;
   }
 
+  /** Wipe all events but keep the db open. Used by the Wipe Everything menu so subsequent IPC calls still work. */
+  clear(): void {
+    this.db.exec('DELETE FROM events;');
+  }
+
   stats(now: number): EventStats {
     const meta = this.db.prepare(`
       SELECT
