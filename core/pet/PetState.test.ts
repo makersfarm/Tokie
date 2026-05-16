@@ -88,3 +88,49 @@ describe('PetState construction', () => {
     expect(pet.snapshot.phase).toBe(2);
   });
 });
+
+describe('PetState.feed model arg', () => {
+  let pet: PetState;
+  let captured: PetEvent[];
+
+  beforeEach(() => {
+    pet = new PetState({ ...baseSnap }, { now: () => 1_000 });
+    captured = [];
+    pet.on(e => captured.push(e));
+  });
+
+  it('forwards model in fed event when provided', () => {
+    pet.feed(500, 'claude-opus-4-7');
+    const fed = captured.find(e => e.type === 'fed');
+    expect(fed).toMatchObject({ type: 'fed', nutrition: 500, model: 'claude-opus-4-7' });
+  });
+
+  it('omits model in fed event when not provided', () => {
+    pet.feed(500);
+    const fed = captured.find(e => e.type === 'fed') as { model?: string };
+    expect(fed.model).toBeUndefined();
+  });
+});
+
+describe('PetState.nudgeCondition', () => {
+  it('caps condition at 100', () => {
+    const pet = new PetState({ ...baseSnap, condition: 98 }, { now: () => 1_000 });
+    pet.nudgeCondition(10);
+    expect(pet.snapshot.condition).toBe(100);
+  });
+
+  it('ignores non-positive amounts', () => {
+    const pet = new PetState({ ...baseSnap, condition: 50 }, { now: () => 1_000 });
+    pet.nudgeCondition(0);
+    pet.nudgeCondition(-5);
+    expect(pet.snapshot.condition).toBe(50);
+  });
+
+  it('emits mood-changed when crossing threshold', () => {
+    const pet = new PetState({ ...baseSnap, condition: 65, mood: 'normal' }, { now: () => 1_000 });
+    const captured: PetEvent[] = [];
+    pet.on(e => captured.push(e));
+    pet.nudgeCondition(10); // 65 + 10 = 75 → happy (≥70 is happy)
+    expect(captured.some(e => e.type === 'mood-changed' && e.to === 'happy')).toBe(true);
+  });
+});

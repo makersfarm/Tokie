@@ -30,7 +30,7 @@ export class PetState {
     for (const cb of this.listeners) cb(e);
   }
 
-  feed(nutrition: number): void {
+  feed(nutrition: number, model?: string): void {
     if (nutrition <= 0) return;
     const now = this.clock.now();
     const prevPhase = this.snap.phase;
@@ -42,12 +42,22 @@ export class PetState {
     this.snap.phase = phaseForXP(this.snap.lifetimeXP);
     this.snap.mood = moodForCondition(this.snap.condition);
 
-    this.emit({ type: 'fed', nutrition, ts: now });
+    this.emit({ type: 'fed', nutrition, ts: now, ...(model ? { model } : {}) });
     if (this.snap.phase !== prevPhase) {
       this.emit({ type: 'evolved', from: prevPhase, to: this.snap.phase, ts: now });
     }
     if (this.snap.mood !== prevMood) {
       this.emit({ type: 'mood-changed', from: prevMood, to: this.snap.mood, ts: now });
+    }
+  }
+
+  nudgeCondition(amount: number): void {
+    if (amount <= 0) return;
+    const prevMood = this.snap.mood;
+    this.snap.condition = Math.min(100, this.snap.condition + amount);
+    this.snap.mood = moodForCondition(this.snap.condition);
+    if (this.snap.mood !== prevMood) {
+      this.emit({ type: 'mood-changed', from: prevMood, to: this.snap.mood, ts: this.clock.now() });
     }
   }
 
