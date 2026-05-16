@@ -8,6 +8,6 @@
   </defs>
   <ellipse cx="64" cy="72" rx="36" ry="44" fill="url(#g0)" stroke="#5a3d12" stroke-width="2"/>
   <path d="M32 78 q10 -8 16 0 q10 -8 16 0 q10 -8 16 0 q10 -8 16 0" fill="none" stroke="#b88a36" stroke-width="2"/>
-  <circle cx="52" cy="56" r="3" fill="#3a2a08"/>
-  <circle cx="76" cy="56" r="3" fill="#3a2a08"/>
+  <circle cx="52" cy="56" r="3" fill="#3a2a08" class="pet-eye"/>
+  <circle cx="76" cy="56" r="3" fill="#3a2a08" class="pet-eye"/>
 </svg>

@@ -31,8 +31,8 @@
   <!-- eyes -->
   <circle cx="56" cy="44" r="3.5" fill="#fff"/>
   <circle cx="68" cy="44" r="3.5" fill="#fff"/>
-  <circle cx="57" cy="45" r="1.8" fill="#111"/>
-  <circle cx="69" cy="45" r="1.8" fill="#111"/>
+  <circle cx="57" cy="45" r="1.8" fill="#111" class="pet-eye"/>
+  <circle cx="69" cy="45" r="1.8" fill="#111" class="pet-eye"/>
   <!-- beak -->
   <path d="M70 50 L80 52 L72 56 Z" fill="#f5a623" stroke="#7a5410" stroke-width="1"/>
 </svg>

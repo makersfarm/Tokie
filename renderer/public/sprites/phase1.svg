@@ -13,8 +13,8 @@
   <!-- eyes -->
   <circle cx="54" cy="60" r="5" fill="#fff"/>
   <circle cx="74" cy="60" r="5" fill="#fff"/>
-  <circle cx="55" cy="61" r="2.5" fill="#111"/>
-  <circle cx="75" cy="61" r="2.5" fill="#111"/>
+  <circle cx="55" cy="61" r="2.5" fill="#111" class="pet-eye"/>
+  <circle cx="75" cy="61" r="2.5" fill="#111" class="pet-eye"/>
   <!-- beak -->
   <path d="M60 72 L64 78 L68 72 Z" fill="#f5a623" stroke="#7a5410" stroke-width="1"/>
   <!-- tuft -->

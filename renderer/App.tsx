@@ -65,6 +65,7 @@ function PetView() {
   const [feasting, setFeasting] = useState(false);
   const [greeting, setGreeting] = useState<string | null>(null);
   const [burstLine, setBurstLine] = useState<string | null>(null);
+  const [blinking, setBlinking] = useState(false);
   const lastClickAt = useRef(0);
   const downRef = useRef<{ x: number; y: number } | null>(null);
   const transientTimers = useRef<Set<ReturnType<typeof setTimeout>>>(new Set());
@@ -120,6 +121,25 @@ function PetView() {
     return () => clearTimeout(t);
   }, [burst.nonce]);
 
+  // blink scheduling — only when happy or normal
+  useEffect(() => {
+    if (!snap) return;
+    if (snap.mood !== 'happy' && snap.mood !== 'normal') return;
+    let cancelled = false;
+    let timer: ReturnType<typeof setTimeout>;
+    const schedule = () => {
+      const delay = 15_000 + Math.random() * 15_000;
+      timer = setTimeout(() => {
+        if (cancelled) return;
+        setBlinking(true);
+        setTimeout(() => { if (!cancelled) setBlinking(false); }, 150);
+        schedule();
+      }, delay);
+    };
+    schedule();
+    return () => { cancelled = true; clearTimeout(timer); };
+  }, [snap?.mood]);
+
   // click → greeting (with drag-vs-click threshold)
   const onPointerDown = (e: React.PointerEvent) => {
     downRef.current = { x: e.clientX, y: e.clientY };
@@ -155,7 +175,7 @@ function PetView() {
     <div className="root" onContextMenu={handleContext}>
       {!tiny && <StageBadge phase={snap.phase} compact={compactBadge} />}
       <div className={`pet-wrap${almostThere ? ' almost-there' : ''}`} {...hover.bind} onPointerDown={onPointerDown} onPointerUp={onPointerUp}>
-        <Pet phase={snap.phase} mood={snap.mood} feasting={feasting} />
+        <Pet phase={snap.phase} mood={snap.mood} feasting={feasting} blinking={blinking} />
       </div>
       {!tiny && <PetProgressBar phase={snap.phase} xp={snap.lifetimeXP} mood={snap.mood} almost={almostThere} />}
       {!tiny && <div className="token-today">{fmtK(snap.lifetimeXP)} / {fmtK(targetThreshold(snap.phase))}</div>}
