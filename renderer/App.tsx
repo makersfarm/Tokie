@@ -60,7 +60,7 @@ function PetView() {
 
   const hover = useHover();
 
-  const [bursts, setBursts]   = useState<{ id: number; amount: number; xPct: number; yPct: number }[]>([]);
+  const [bursts, setBursts]   = useState<{ id: number; amount: number; xPct: number; yPct: number; model?: string }[]>([]);
   const [evo, setEvo]         = useState<{ from: Phase; to: Phase } | null>(null);
   const [feasting, setFeasting] = useState(false);
   const [greeting, setGreeting] = useState<string | null>(null);
@@ -90,9 +90,10 @@ function PetView() {
     if (lastEvent.type === 'fed') {
       const id = Math.random();
       const amount = lastEvent.nutrition;
+      const model = lastEvent.model;
       const xPct = 30 + Math.random() * 40;
       const yPct = 30 + Math.random() * 40;
-      setBursts(b => [...b, { id, amount, xPct, yPct }]);
+      setBursts(b => [...b, { id, amount, xPct, yPct, model }]);
       setFeasting(true);
       scheduleTimer(() => setBursts(b => b.filter(x => x.id !== id)), 1300);
       scheduleTimer(() => setFeasting(false), 400);
@@ -159,7 +160,7 @@ function PetView() {
       {!tiny && <PetProgressBar phase={snap.phase} xp={snap.lifetimeXP} mood={snap.mood} almost={almostThere} />}
       {!tiny && <div className="token-today">{fmtK(snap.lifetimeXP)} / {fmtK(targetThreshold(snap.phase))}</div>}
 
-      {bursts.map(b => <EatingBurst key={b.id} amount={b.amount} xPct={b.xPct} yPct={b.yPct} />)}
+      {bursts.map(b => <EatingBurst key={b.id} amount={b.amount} xPct={b.xPct} yPct={b.yPct} model={b.model} />)}
       {hover.hovered && <InfoBubble snap={snap} tokensToday={tokensToday} compact={compactInfo} />}
       {greeting   && <SpeechBubble text={greeting}   variant="greeting"  />}
       {burstLine  && <SpeechBubble text={burstLine}  variant="proactive" />}
