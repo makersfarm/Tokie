@@ -141,6 +141,10 @@ function PetView() {
 
   if (!snap) return null;
 
+  const threshold = targetThreshold(snap.phase);
+  const ratio = threshold > 0 ? snap.lifetimeXP / threshold : 0;
+  const almostThere = snap.phase < 3 && ratio >= 0.9;
+
   const handleContext = (e: React.MouseEvent) => {
     e.preventDefault();
     window.pet?.openMenu?.();
@@ -149,10 +153,10 @@ function PetView() {
   return (
     <div className="root" onContextMenu={handleContext}>
       {!tiny && <StageBadge phase={snap.phase} compact={compactBadge} />}
-      <div {...hover.bind} onPointerDown={onPointerDown} onPointerUp={onPointerUp}>
+      <div className={`pet-wrap${almostThere ? ' almost-there' : ''}`} {...hover.bind} onPointerDown={onPointerDown} onPointerUp={onPointerUp}>
         <Pet phase={snap.phase} mood={snap.mood} feasting={feasting} />
       </div>
-      {!tiny && <PetProgressBar phase={snap.phase} xp={snap.lifetimeXP} mood={snap.mood} />}
+      {!tiny && <PetProgressBar phase={snap.phase} xp={snap.lifetimeXP} mood={snap.mood} almost={almostThere} />}
       {!tiny && <div className="token-today">{fmtK(snap.lifetimeXP)} / {fmtK(targetThreshold(snap.phase))}</div>}
 
       {bursts.map(b => <EatingBurst key={b.id} amount={b.amount} xPct={b.xPct} yPct={b.yPct} />)}
