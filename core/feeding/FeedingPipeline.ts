@@ -10,7 +10,7 @@ export class FeedingPipeline {
     const inserted = this.db.insert(e);
     if (!inserted) return;
     const nutrition = tokensToNutrition(e.tokens);
-    if (nutrition > 0) this.pet.feed(nutrition);
+    if (nutrition > 0) this.pet.feed(nutrition, e.model);
   }
 
   handleSessionMeta(m: SessionMetaEvent): void {

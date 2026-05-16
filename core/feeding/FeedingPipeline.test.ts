@@ -60,3 +60,44 @@ describe('FeedingPipeline', () => {
     expect(events.find(e => e.type === 'fed')).toBeUndefined();
   });
 });
+
+describe('FeedingPipeline model forwarding', () => {
+  it('passes model from TokenEvent into PetState.feed', () => {
+    const dir = mkdtempSync(path.join(tmpdir(), 'fp-'));
+    const db = new EventsDb(path.join(dir, 'events.sqlite'));
+    const pet = new PetState(makeDefaultSnapshot(0), { now: () => 1_000 });
+    const captured: PetEvent[] = [];
+    pet.on(e => captured.push(e));
+    const pipe = new FeedingPipeline(db, pet);
+    pipe.handle({
+      sourceId: 's',
+      sessionId: 'x',
+      cursor: 'c1',
+      ts: 1_000,
+      tokens: { input: 0, output: 10_000, cacheRead: 0, cacheCreate: 0 },
+      model: 'claude-opus-4-7'
+    });
+    const fed = captured.find(e => e.type === 'fed') as { model?: string };
+    expect(fed.model).toBe('claude-opus-4-7');
+    rmSync(dir, { recursive: true });
+  });
+
+  it('omits model when TokenEvent has none', () => {
+    const dir = mkdtempSync(path.join(tmpdir(), 'fp-'));
+    const db = new EventsDb(path.join(dir, 'events.sqlite'));
+    const pet = new PetState(makeDefaultSnapshot(0), { now: () => 1_000 });
+    const captured: PetEvent[] = [];
+    pet.on(e => captured.push(e));
+    const pipe = new FeedingPipeline(db, pet);
+    pipe.handle({
+      sourceId: 's',
+      sessionId: 'x',
+      cursor: 'c1',
+      ts: 1_000,
+      tokens: { input: 0, output: 10_000, cacheRead: 0, cacheCreate: 0 }
+    });
+    const fed = captured.find(e => e.type === 'fed') as { model?: string };
+    expect(fed.model).toBeUndefined();
+    rmSync(dir, { recursive: true });
+  });
+});
