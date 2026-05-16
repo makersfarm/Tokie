@@ -24,6 +24,11 @@ export function wireIpc(deps: IpcDeps): () => void {
   ipcMain.handle('pet:openMenu',    () => {
     Menu.buildFromTemplate(menuTemplate()).popup({ window: petWindow });
   });
+  ipcMain.handle('pet:nudgeCondition', (_e, amount: number) => {
+    const n = Number(amount);
+    if (!Number.isFinite(n)) return;
+    pet.nudgeCondition(Math.min(10, Math.max(0, n)));
+  });
 
   const unsub = pet.on((e: PetEvent) => {
     for (const w of broadcastWindows()) {
@@ -37,6 +42,7 @@ export function wireIpc(deps: IpcDeps): () => void {
     ipcMain.removeHandler('pet:todayBySession');
     ipcMain.removeHandler('pet:sessionDetailToday');
     ipcMain.removeHandler('pet:openMenu');
+    ipcMain.removeHandler('pet:nudgeCondition');
     unsub();
   };
 }

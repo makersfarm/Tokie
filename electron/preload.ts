@@ -10,5 +10,6 @@ contextBridge.exposeInMainWorld('pet', {
   getStats:           () => ipcRenderer.invoke('pet:getStats'),
   todayBySession:     () => ipcRenderer.invoke('pet:todayBySession'),
   sessionDetailToday: (sessionId: string) => ipcRenderer.invoke('pet:sessionDetailToday', sessionId),
-  openMenu:           () => ipcRenderer.invoke('pet:openMenu')
+  openMenu:           () => ipcRenderer.invoke('pet:openMenu'),
+  nudgeCondition:     (amount: number) => ipcRenderer.invoke('pet:nudgeCondition', amount)
 });
