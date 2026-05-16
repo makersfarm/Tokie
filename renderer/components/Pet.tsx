@@ -28,14 +28,16 @@ function usePhaseSvg(phase: Phase): string {
   return svg;
 }
 
-export function Pet({ phase, mood, feasting, blinking }: {
+export function Pet({ phase, mood, feasting, blinking, sleeping, waking }: {
   phase: Phase; mood: Mood; feasting: boolean;
-  blinking?: boolean;
+  blinking?: boolean; sleeping?: boolean; waking?: boolean;
 }) {
   const svg = usePhaseSvg(phase);
-  const overlay = MOOD_OVERLAY[mood];
+  // When sleeping, force the sleepy overlay; otherwise use the actual mood.
+  const effectiveMood: Mood = sleeping ? 'sleepy' : mood;
+  const overlay = MOOD_OVERLAY[effectiveMood];
   return (
-    <div className={`pet ${feasting ? 'feasting' : ''} mood-${mood} ${blinking ? 'blink' : ''}`}>
+    <div className={`pet ${feasting ? 'feasting' : ''} mood-${effectiveMood} ${blinking ? 'blink' : ''} ${sleeping ? 'sleeping' : ''} ${waking ? 'waking' : ''}`}>
       <div className="pet-sprite" dangerouslySetInnerHTML={{ __html: svg }} />
       {overlay && <span className="pet-overlay">{overlay}</span>}
     </div>

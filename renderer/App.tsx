@@ -3,6 +3,7 @@ import { usePetState } from './hooks/usePetState';
 import { useHover } from './hooks/useHover';
 import { useTokensToday } from './hooks/useTokensToday';
 import { useBurstDetector } from './hooks/useBurstDetector';
+import { useSleepState } from './hooks/useSleepState';
 import { Pet } from './components/Pet';
 import { StageBadge } from './components/StageBadge';
 import { PetProgressBar } from './components/PetProgressBar';
@@ -66,6 +67,8 @@ function PetView() {
   const [greeting, setGreeting] = useState<string | null>(null);
   const [burstLine, setBurstLine] = useState<string | null>(null);
   const [blinking, setBlinking] = useState(false);
+  const [wakeNonce, setWakeNonce] = useState(0);
+  const bumpWake = () => setWakeNonce(n => n + 1);
   const lastClickAt = useRef(0);
   const downRef = useRef<{ x: number; y: number } | null>(null);
   const transientTimers = useRef<Set<ReturnType<typeof setTimeout>>>(new Set());
@@ -86,9 +89,23 @@ function PetView() {
     transientTimers.current.clear();
   }, []);
 
+  const sleep = useSleepState(snap?.lastFedAt ?? null, wakeNonce);
+
+  const [waking, setWaking] = useState(false);
+  const wasAsleepRef = useRef(sleep.asleep);
+  useEffect(() => {
+    if (wasAsleepRef.current && !sleep.asleep) {
+      setWaking(true);
+      const t = setTimeout(() => setWaking(false), 600);
+      return () => { clearTimeout(t); };
+    }
+    wasAsleepRef.current = sleep.asleep;
+  }, [sleep.asleep]);
+
   useEffect(() => {
     if (!lastEvent) return;
     if (lastEvent.type === 'fed') {
+      bumpWake();
       const id = Math.random();
       const amount = lastEvent.nutrition;
       const model = lastEvent.model;
@@ -142,6 +159,7 @@ function PetView() {
 
   // click → greeting (with drag-vs-click threshold)
   const onPointerDown = (e: React.PointerEvent) => {
+    bumpWake();
     downRef.current = { x: e.clientX, y: e.clientY };
   };
   const onPointerUp = (e: React.PointerEvent) => {
@@ -175,7 +193,7 @@ function PetView() {
     <div className="root" onContextMenu={handleContext}>
       {!tiny && <StageBadge phase={snap.phase} compact={compactBadge} />}
       <div className={`pet-wrap${almostThere ? ' almost-there' : ''}`} {...hover.bind} onPointerDown={onPointerDown} onPointerUp={onPointerUp}>
-        <Pet phase={snap.phase} mood={snap.mood} feasting={feasting} blinking={blinking} />
+        <Pet phase={snap.phase} mood={snap.mood} feasting={feasting} blinking={blinking} sleeping={sleep.asleep} waking={waking} />
       </div>
       {!tiny && <PetProgressBar phase={snap.phase} xp={snap.lifetimeXP} mood={snap.mood} almost={almostThere} />}
       {!tiny && <div className="token-today">{fmtK(snap.lifetimeXP)} / {fmtK(targetThreshold(snap.phase))}</div>}
