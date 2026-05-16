@@ -23,6 +23,12 @@ html, body, #root {
   image-rendering: -webkit-optimize-contrast;
   pointer-events: none;
   -webkit-user-drag: none;
+  animation: breathe 3.6s ease-in-out infinite;
+}
+@keyframes breathe {
+  0%   { transform: scale(1); }
+  50%  { transform: scale(1.02); }
+  100% { transform: scale(1); }
 }
 .pet-overlay {
   position: absolute; top: -8px; right: -8px;
@@ -32,6 +38,7 @@ html, body, #root {
 .pet.mood-sleepy .pet-sprite { filter: brightness(0.85) saturate(0.7); }
 .pet.mood-sad    .pet-sprite { filter: brightness(0.9) saturate(0.6); }
 .pet.feasting { animation: bounce 0.4s ease; }
+.pet.feasting .pet-sprite { animation: none; }
 @keyframes bounce {
   0%   { transform: translate(-50%, -50%) scale(1); }
   50%  { transform: translate(-50%, -65%) scale(1.15); }
