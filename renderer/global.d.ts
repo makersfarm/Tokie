@@ -38,6 +38,7 @@ declare global {
       sessionDetailToday: (sessionId: string) => Promise<SessionDetailRow[]>;
       openMenu: () => Promise<void>;
       nudgeCondition: (amount: number) => Promise<void>;
+      setBounds: (b: { x: number; y: number; w: number; h: number }) => void;
     };
   }
 }

@@ -13,6 +13,7 @@ import { EatingBurst } from './components/EatingBurst';
 import { EvolveCutscene } from './components/EvolveCutscene';
 import { StatsView } from './components/StatsView';
 import { useTickleDetector } from './hooks/useTickleDetector';
+import { ResizeHandles } from './components/ResizeHandles';
 import { pickGreeting, pickBurstLine, pickTickleLine } from './data/speech';
 import { fmtK } from './data/fmt';
 import type { Phase } from '@core/types';
@@ -215,6 +216,7 @@ function PetView() {
       {burstLine  && <SpeechBubble text={burstLine}  variant="proactive" />}
       {tickleLine && <SpeechBubble text={tickleLine} variant="greeting"  />}
       {evo && <EvolveCutscene from={evo.from} to={evo.to} />}
+      <ResizeHandles />
     </div>
   );
 }

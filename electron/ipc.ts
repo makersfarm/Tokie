@@ -1,4 +1,4 @@
-import { ipcMain, BrowserWindow, Menu, MenuItemConstructorOptions } from 'electron';
+import { ipcMain, BrowserWindow, Menu, MenuItemConstructorOptions, IpcMainEvent } from 'electron';
 import type { PetState } from '../core/pet/PetState';
 import type { PetEvent } from '../core/types';
 import type { EventsDb } from '../core/storage/eventsDb';
@@ -30,6 +30,11 @@ export function wireIpc(deps: IpcDeps): () => void {
     pet.nudgeCondition(Math.min(10, Math.max(0, n)));
   });
 
+  const onSetBounds = (_e: IpcMainEvent, b: { x: number; y: number; w: number; h: number }) => {
+    petWindow.setBounds({ x: b.x, y: b.y, width: b.w, height: b.h });
+  };
+  ipcMain.on('window:set-bounds', onSetBounds);
+
   const unsub = pet.on((e: PetEvent) => {
     for (const w of broadcastWindows()) {
       if (!w.isDestroyed()) w.webContents.send('pet:event', e);
@@ -43,6 +48,7 @@ export function wireIpc(deps: IpcDeps): () => void {
     ipcMain.removeHandler('pet:sessionDetailToday');
     ipcMain.removeHandler('pet:openMenu');
     ipcMain.removeHandler('pet:nudgeCondition');
+    ipcMain.off('window:set-bounds', onSetBounds);
     unsub();
   };
 }

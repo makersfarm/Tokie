@@ -11,5 +11,6 @@ contextBridge.exposeInMainWorld('pet', {
   todayBySession:     () => ipcRenderer.invoke('pet:todayBySession'),
   sessionDetailToday: (sessionId: string) => ipcRenderer.invoke('pet:sessionDetailToday', sessionId),
   openMenu:           () => ipcRenderer.invoke('pet:openMenu'),
-  nudgeCondition:     (amount: number) => ipcRenderer.invoke('pet:nudgeCondition', amount)
+  nudgeCondition:     (amount: number) => ipcRenderer.invoke('pet:nudgeCondition', amount),
+  setBounds:          (b: { x: number; y: number; w: number; h: number }) => ipcRenderer.send('window:set-bounds', b)
 });

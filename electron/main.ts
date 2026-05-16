@@ -7,6 +7,10 @@ import { bootstrap } from './bootstrap';
 // stable identity isn't tied to a future rename of the app display name.
 app.setPath('userData', path.join(app.getPath('appData'), 'token-eater-pet'));
 
+if (!app.requestSingleInstanceLock()) {
+  app.quit();
+}
+
 let shutdownFn: (() => Promise<void>) | null = null;
 
 app.whenReady().then(async () => {
