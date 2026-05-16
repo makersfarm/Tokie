@@ -20,6 +20,20 @@ export interface NutritionEvent {
   ts: number;
   nutrition: number;
   source: string;
+  model?: string;
+}
+
+export interface SessionMetaEvent {
+  sessionId: string;
+  /** Best-effort human label. May be undefined when only cwd/gitBranch were learned. */
+  name?: string;
+  /** Higher wins — used by the DB upsert to avoid overwriting a good name
+   *  with a worse one. 2 = ai-title, 1 = first user prompt. */
+  namePriority?: 1 | 2;
+  cwd?: string;
+  gitBranch?: string;
+  /** Timestamp on the source line. Used to set sessions.started_at when missing. */
+  ts: number;
 }
 
 export type Phase = 0 | 1 | 2 | 3;
@@ -49,7 +63,7 @@ export interface PetSnapshot {
 }
 
 export type PetEvent =
-  | { type: 'fed'; nutrition: number; ts: number }
+  | { type: 'fed'; nutrition: number; ts: number; model?: string }
   | { type: 'evolved'; from: Phase; to: Phase; ts: number }
   | { type: 'mood-changed'; from: Mood; to: Mood; ts: number }
   | { type: 'snapshot'; snapshot: PetSnapshot };
