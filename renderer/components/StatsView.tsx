@@ -1,6 +1,7 @@
-import { useEffect, useState } from 'react';
+import { Fragment, useEffect, useState } from 'react';
 import type { PetSnapshot } from '@core/types';
 import { STAGES, nextThreshold } from '@core/pet/stages';
+import { tokensToNutrition } from '@core/feeding/nutrition';
 
 // Inlined to avoid pulling better-sqlite3 into the renderer bundle.
 interface TokenSum { input: number; output: number; cacheRead: number; cacheCreate: number }
@@ -15,6 +16,36 @@ interface EventStats {
   last24h:  TokenSum;
   last7d:   TokenSum;
   bySource: SourceBreakdown[];
+}
+interface SessionTodayRow extends TokenSum {
+  sessionId: string;
+  name: string | null;
+  cwd: string | null;
+  gitBranch: string | null;
+  events: number;
+  firstTs: number;
+  lastTs: number;
+}
+interface SessionDetailRow extends TokenSum {
+  ts: number;
+  source: string;
+  model: string | null;
+}
+
+function fmtTimeShort(ts: number): string {
+  return new Date(ts).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+}
+function fmtTimeFull(ts: number): string {
+  return new Date(ts).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' });
+}
+
+function sessionLabel(row: SessionTodayRow): string {
+  if (row.name) return row.name;
+  if (row.cwd) {
+    const seg = row.cwd.split('/').filter(Boolean).pop();
+    if (seg) return seg;
+  }
+  return row.sessionId.slice(0, 8);
 }
 
 function fmtNum(n: number): string {
@@ -37,16 +68,30 @@ function tokenTotal(t: TokenSum): number {
 export function StatsView() {
   const [snap, setSnap] = useState<PetSnapshot | null>(null);
   const [stats, setStats] = useState<EventStats | null>(null);
+  const [sessions, setSessions] = useState<SessionTodayRow[]>([]);
+  const [expanded, setExpanded] = useState<string | null>(null);
+  const [detail, setDetail] = useState<SessionDetailRow[] | null>(null);
 
   const reload = () => {
     window.pet.getSnapshot().then(setSnap);
     window.pet.getStats().then(setStats);
+    window.pet.todayBySession().then(setSessions);
   };
 
   useEffect(() => {
     reload();
     return window.pet.subscribe(() => reload());
   }, []);
+
+  // refresh detail when expanded row changes, and whenever session list refreshes
+  useEffect(() => {
+    if (!expanded) { setDetail(null); return; }
+    window.pet.sessionDetailToday(expanded).then(setDetail);
+  }, [expanded, sessions]);
+
+  const toggleSession = (id: string) => {
+    setExpanded(prev => (prev === id ? null : id));
+  };
 
   if (!snap || !stats) return <div className="stats loading">Loading...</div>;
 
@@ -102,6 +147,85 @@ export function StatsView() {
             <tr><th>Total</th>        <td>{fmtNum(tokenTotal(stats.today))}</td>  <td>{fmtNum(tokenTotal(stats.last24h))}</td>  <td>{fmtNum(tokenTotal(stats.last7d))}</td></tr>
           </tbody>
         </table>
+      </section>
+
+      <section className="today-sessions">
+        <h2>Today by session</h2>
+        {sessions.length === 0 ? <p className="empty">No sessions today.</p> : (
+          <table>
+            <thead>
+              <tr>
+                <th>Time</th>
+                <th>Session</th>
+                <th className="num">Events</th>
+                <th className="num">Tokens</th>
+                <th className="num">Nutrition</th>
+              </tr>
+            </thead>
+            <tbody>
+              {sessions.map(s => {
+                const total = tokenTotal(s);
+                const nutrition = tokensToNutrition({
+                  input: s.input, output: s.output,
+                  cacheRead: s.cacheRead, cacheCreate: s.cacheCreate
+                });
+                const isOpen = expanded === s.sessionId;
+                return (
+                  <Fragment key={s.sessionId}>
+                    <tr
+                      className={`session-row ${isOpen ? 'open' : ''}`}
+                      onClick={() => toggleSession(s.sessionId)}
+                    >
+                      <td>{fmtTimeShort(s.firstTs)}–{fmtTimeShort(s.lastTs)}</td>
+                      <td className="session-name" title={s.cwd ?? s.sessionId}>
+                        <span className="caret">{isOpen ? '▼' : '▶'}</span> {sessionLabel(s)}
+                      </td>
+                      <td className="num">{fmtNum(s.events)}</td>
+                      <td className="num">{fmtNum(total)}</td>
+                      <td className="num">{fmtNum(Math.round(nutrition))}</td>
+                    </tr>
+                    {isOpen && (
+                      <tr className="session-detail">
+                        <td colSpan={5}>
+                          {!detail ? <span className="empty">Loading…</span> : detail.length === 0 ? (
+                            <span className="empty">No events.</span>
+                          ) : (
+                            <table className="detail">
+                              <thead>
+                                <tr>
+                                  <th>Time</th>
+                                  <th>Model</th>
+                                  <th className="num">In</th>
+                                  <th className="num">Out</th>
+                                  <th className="num">Cache R</th>
+                                  <th className="num">Cache C</th>
+                                  <th className="num">Nutr.</th>
+                                </tr>
+                              </thead>
+                              <tbody>
+                                {detail.map((d, i) => (
+                                  <tr key={i}>
+                                    <td>{fmtTimeFull(d.ts)}</td>
+                                    <td>{d.model ?? '—'}</td>
+                                    <td className="num">{fmtNum(d.input)}</td>
+                                    <td className="num">{fmtNum(d.output)}</td>
+                                    <td className="num">{fmtNum(d.cacheRead)}</td>
+                                    <td className="num">{fmtNum(d.cacheCreate)}</td>
+                                    <td className="num">{fmtNum(Math.round(tokensToNutrition(d)))}</td>
+                                  </tr>
+                                ))}
+                              </tbody>
+                            </table>
+                          )}
+                        </td>
+                      </tr>
+                    )}
+                  </Fragment>
+                );
+              })}
+            </tbody>
+          </table>
+        )}
       </section>
 
       <section>

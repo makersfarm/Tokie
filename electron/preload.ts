@@ -6,7 +6,9 @@ contextBridge.exposeInMainWorld('pet', {
     ipcRenderer.on('pet:event', listener);
     return () => ipcRenderer.off('pet:event', listener);
   },
-  getSnapshot: () => ipcRenderer.invoke('pet:getSnapshot'),
-  getStats:    () => ipcRenderer.invoke('pet:getStats'),
-  openMenu:    () => ipcRenderer.invoke('pet:openMenu')
+  getSnapshot:        () => ipcRenderer.invoke('pet:getSnapshot'),
+  getStats:           () => ipcRenderer.invoke('pet:getStats'),
+  todayBySession:     () => ipcRenderer.invoke('pet:todayBySession'),
+  sessionDetailToday: (sessionId: string) => ipcRenderer.invoke('pet:sessionDetailToday', sessionId),
+  openMenu:           () => ipcRenderer.invoke('pet:openMenu')
 });

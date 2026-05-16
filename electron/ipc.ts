@@ -18,6 +18,9 @@ export function wireIpc(deps: IpcDeps): () => void {
 
   ipcMain.handle('pet:getSnapshot', () => pet.snapshot);
   ipcMain.handle('pet:getStats',    () => db.stats(Date.now()));
+  ipcMain.handle('pet:todayBySession', () => db.todayBySession(Date.now()));
+  ipcMain.handle('pet:sessionDetailToday', (_e, sessionId: string) =>
+    db.sessionDetailToday(sessionId, Date.now()));
   ipcMain.handle('pet:openMenu',    () => {
     Menu.buildFromTemplate(menuTemplate()).popup({ window: petWindow });
   });
@@ -31,6 +34,8 @@ export function wireIpc(deps: IpcDeps): () => void {
   return () => {
     ipcMain.removeHandler('pet:getSnapshot');
     ipcMain.removeHandler('pet:getStats');
+    ipcMain.removeHandler('pet:todayBySession');
+    ipcMain.removeHandler('pet:sessionDetailToday');
     ipcMain.removeHandler('pet:openMenu');
     unsub();
   };

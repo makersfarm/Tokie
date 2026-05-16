@@ -1,7 +1,7 @@
 import Database from 'better-sqlite3';
 import fs from 'node:fs';
 import path from 'node:path';
-import type { TokenEvent } from '../types';
+import type { TokenEvent, SessionMetaEvent } from '../types';
 
 export interface TokenSum {
   input: number;
@@ -27,6 +27,25 @@ export interface EventStats {
   bySource: SourceBreakdown[];
 }
 
+/** One row per session that produced at least one token event today (since
+ *  local midnight). totals here are TODAY-only, never the session lifetime. */
+export interface SessionTodayRow extends TokenSum {
+  sessionId: string;
+  name: string | null;
+  cwd: string | null;
+  gitBranch: string | null;
+  events: number;
+  firstTs: number;
+  lastTs: number;
+}
+
+/** One bucket from sessionDetailToday — same shape as a TokenSum plus when. */
+export interface SessionDetailRow extends TokenSum {
+  ts: number;
+  source: string;
+  model: string | null;
+}
+
 function startOfLocalDay(now: number): number {
   const d = new Date(now);
   d.setHours(0, 0, 0, 0);
@@ -39,6 +58,7 @@ export class EventsDb {
   private db: Database.Database;
   private insertStmt: Database.Statement;
   private sumStmt: Database.Statement;
+  private upsertSessionStmt: Database.Statement;
 
   constructor(file: string) {
     fs.mkdirSync(path.dirname(file), { recursive: true });
@@ -63,6 +83,17 @@ export class EventsDb {
         ON events(message_id, request_id)
         WHERE message_id IS NOT NULL AND request_id IS NOT NULL;
       CREATE INDEX IF NOT EXISTS idx_ts ON events(ts);
+      CREATE INDEX IF NOT EXISTS idx_session ON events(session_id);
+      CREATE TABLE IF NOT EXISTS sessions (
+        session_id TEXT PRIMARY KEY,
+        -- name_priority: 0 = derived (cwd basename), 1 = first user prompt,
+        -- 2 = ai-title. Only overwrite name when incoming priority >= current.
+        name TEXT,
+        name_priority INTEGER NOT NULL DEFAULT 0,
+        cwd TEXT,
+        git_branch TEXT,
+        started_at INTEGER NOT NULL
+      );
     `);
     this.insertStmt = this.db.prepare(`
       INSERT INTO events
@@ -78,6 +109,26 @@ export class EventsDb {
         COALESCE(SUM(cache_read),0)    AS cacheRead,
         COALESCE(SUM(cache_create),0)  AS cacheCreate
       FROM events WHERE ts >= ?
+    `);
+    this.upsertSessionStmt = this.db.prepare(`
+      INSERT INTO sessions (session_id, name, name_priority, cwd, git_branch, started_at)
+      VALUES (@session_id, @name, @name_priority, @cwd, @git_branch, @started_at)
+      ON CONFLICT(session_id) DO UPDATE SET
+        name = CASE
+                 WHEN excluded.name IS NOT NULL
+                  AND excluded.name_priority >= sessions.name_priority
+                 THEN excluded.name
+                 ELSE sessions.name
+               END,
+        name_priority = CASE
+                          WHEN excluded.name IS NOT NULL
+                           AND excluded.name_priority >= sessions.name_priority
+                          THEN excluded.name_priority
+                          ELSE sessions.name_priority
+                        END,
+        cwd        = COALESCE(excluded.cwd,        sessions.cwd),
+        git_branch = COALESCE(excluded.git_branch, sessions.git_branch),
+        started_at = MIN(sessions.started_at, excluded.started_at)
     `);
   }
 
@@ -107,9 +158,63 @@ export class EventsDb {
     return this.sumStmt.get(ts) as TokenSum;
   }
 
+  upsertSession(m: SessionMetaEvent): void {
+    this.upsertSessionStmt.run({
+      session_id: m.sessionId,
+      name: m.name ?? null,
+      name_priority: m.name && m.namePriority ? m.namePriority : 0,
+      cwd: m.cwd ?? null,
+      git_branch: m.gitBranch ?? null,
+      started_at: m.ts
+    });
+  }
+
+  /** Per-session token totals SINCE local midnight only. Sessions that started
+   *  earlier are included as long as they emitted at least one event today. */
+  todayBySession(now: number): SessionTodayRow[] {
+    const midnight = startOfLocalDay(now);
+    return this.db.prepare(`
+      SELECT
+        e.session_id AS sessionId,
+        s.name       AS name,
+        s.cwd        AS cwd,
+        s.git_branch AS gitBranch,
+        COUNT(*)                       AS events,
+        COALESCE(SUM(e.input_tokens),0)  AS input,
+        COALESCE(SUM(e.output_tokens),0) AS output,
+        COALESCE(SUM(e.cache_read),0)    AS cacheRead,
+        COALESCE(SUM(e.cache_create),0)  AS cacheCreate,
+        MIN(e.ts) AS firstTs,
+        MAX(e.ts) AS lastTs
+      FROM events e
+      LEFT JOIN sessions s ON s.session_id = e.session_id
+      WHERE e.ts >= ?
+      GROUP BY e.session_id
+      ORDER BY lastTs DESC
+    `).all(midnight) as SessionTodayRow[];
+  }
+
+  /** Per-event detail for one session, today only. Used by the expand-row UI. */
+  sessionDetailToday(sessionId: string, now: number): SessionDetailRow[] {
+    const midnight = startOfLocalDay(now);
+    return this.db.prepare(`
+      SELECT
+        ts,
+        source,
+        model,
+        input_tokens  AS input,
+        output_tokens AS output,
+        cache_read    AS cacheRead,
+        cache_create  AS cacheCreate
+      FROM events
+      WHERE session_id = ? AND ts >= ?
+      ORDER BY ts ASC
+    `).all(sessionId, midnight) as SessionDetailRow[];
+  }
+
   /** Wipe all events but keep the db open. Used by the Wipe Everything menu so subsequent IPC calls still work. */
   clear(): void {
-    this.db.exec('DELETE FROM events;');
+    this.db.exec('DELETE FROM events; DELETE FROM sessions;');
   }
 
   stats(now: number): EventStats {

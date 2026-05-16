@@ -36,7 +36,10 @@ export async function bootstrap(): Promise<BootResult> {
   const claudeHome  = path.join(os.homedir(), '.claude');
   const statusline  = new ClaudeStatusLineSource(token);
   const isFresh     = snap.lifetimeXP === 0 && Object.keys(snap.lastCursors).length === 0;
-  const jsonlSrc    = new ClaudeJsonlSource(claudeHome, { skipExistingHistory: isFresh });
+  const jsonlSrc    = new ClaudeJsonlSource(claudeHome, {
+    skipExistingHistory: isFresh,
+    onSessionMeta: m => pipeline.handleSessionMeta(m)
+  });
   const savedJsonlCursors = snap.lastCursors['claude-jsonl-files'] as any;
   if (savedJsonlCursors && typeof savedJsonlCursors === 'object') {
     jsonlSrc.loadCursors(savedJsonlCursors);

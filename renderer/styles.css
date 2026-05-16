@@ -95,6 +95,23 @@ html, body, #root {
 }
 .stats .refresh:hover { background: #3c3c40; }
 
+.stats .num { text-align: right; }
+.stats .today-sessions .session-row { cursor: pointer; }
+.stats .today-sessions .session-row:hover { background: #1f1f23; }
+.stats .today-sessions .session-row td { padding: 5px 8px 5px 0; }
+.stats .today-sessions .session-row td:last-child { padding-right: 0; }
+.stats .today-sessions .session-name { text-align: left;
+  max-width: 0; width: 100%;
+  overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.stats .today-sessions .caret { color: #6e6e74; display: inline-block; width: 12px; }
+.stats .today-sessions .session-row.open { background: #1f1f23; }
+.stats .today-sessions .session-detail td { background: #161618; padding: 8px 0; }
+.stats .today-sessions table.detail { width: 100%; font-size: 11px; }
+.stats .today-sessions table.detail th,
+.stats .today-sessions table.detail td { padding: 2px 6px 2px 0; }
+.stats .today-sessions table.detail th:first-child,
+.stats .today-sessions table.detail td:first-child { padding-left: 24px; }
+
 /* --- pet overlay v2 --- */
 .badge {
   position: absolute; top: 4px; left: 50%;

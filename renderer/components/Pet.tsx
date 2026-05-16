@@ -1,10 +1,10 @@
 import type { Phase, Mood } from '@core/types';
 
 const SPRITE: Record<Phase, string> = {
-  0: '/sprites/phase0.svg',
-  1: '/sprites/phase1.svg',
-  2: '/sprites/phase2.svg',
-  3: '/sprites/phase3.svg'
+  0: 'sprites/phase0.svg',
+  1: 'sprites/phase1.svg',
+  2: 'sprites/phase2.svg',
+  3: 'sprites/phase3.svg'
 };
 
 const MOOD_OVERLAY: Record<Mood, string> = {

@@ -2,8 +2,8 @@ import fs from 'node:fs';
 import path from 'node:path';
 import chokidar, { FSWatcher } from 'chokidar';
 import type { TokenSource } from './TokenSource';
-import type { TokenEvent } from '../types';
-import { parseClaudeJsonlLine } from './claudeJsonlParse';
+import type { TokenEvent, SessionMetaEvent } from '../types';
+import { parseClaudeJsonlLine, parseSessionMetaLine } from './claudeJsonlParse';
 
 /** Per-file read state (offset into the file in bytes). */
 interface FileState {
@@ -14,6 +14,10 @@ export interface ClaudeJsonlOpts {
   /** If true, on first sighting of a file, jump offset to the current file size
    *  (i.e. don't replay existing history — only count appended lines). */
   skipExistingHistory?: boolean;
+  /** Receives session-meta events (ai-title, first user prompt, cwd, gitBranch).
+   *  Always called even when skipExistingHistory is true and the token event is
+   *  skipped — names are cheap and needed for the session list. */
+  onSessionMeta?: (m: SessionMetaEvent) => void;
 }
 
 export class ClaudeJsonlSource implements TokenSource {
@@ -22,9 +26,11 @@ export class ClaudeJsonlSource implements TokenSource {
   private state = new Map<string, FileState>();
   private emit: ((e: TokenEvent) => void) | null = null;
   private skipExistingHistory: boolean;
+  private onSessionMeta?: (m: SessionMetaEvent) => void;
 
   constructor(private claudeHome: string, opts: ClaudeJsonlOpts = {}) {
     this.skipExistingHistory = opts.skipExistingHistory ?? false;
+    this.onSessionMeta = opts.onSessionMeta;
   }
 
   /** Apply persisted offsets from a prior run. */
@@ -62,13 +68,42 @@ export class ClaudeJsonlSource implements TokenSource {
   private onFile(file: string, firstSighting: boolean): void {
     if (!file.endsWith('.jsonl')) return;
     if (firstSighting && this.skipExistingHistory && !this.state.has(file)) {
-      // Mark this file as seen at its current size — future appends only.
+      // Token history is skipped (would be duplicate / pet would get fed all
+      // historical tokens at once), but session names are cheap and useful —
+      // scan existing content for meta lines only, then jump offset to EOF.
       let stat: fs.Stats;
       try { stat = fs.statSync(file); } catch { return; }
+      if (this.onSessionMeta) this.scanMetaOnly(file, stat.size);
       this.state.set(file, { offset: stat.size });
       return;
     }
     this.readNew(file);
+  }
+
+  private scanMetaOnly(file: string, end: number): void {
+    if (!this.onSessionMeta || end <= 0) return;
+    const CHUNK = 1 << 20;
+    const fd = fs.openSync(file, 'r');
+    try {
+      let offset = 0;
+      let leftover = '';
+      while (offset < end) {
+        const remaining = end - offset;
+        const buf = Buffer.alloc(Math.min(CHUNK, remaining));
+        fs.readSync(fd, buf, 0, buf.length, offset);
+        const chunk = leftover + buf.toString('utf8');
+        const lines = chunk.split('\n');
+        leftover = lines.pop() ?? '';
+        for (const line of lines) {
+          if (!line) continue;
+          const m = parseSessionMetaLine(line);
+          if (m) this.onSessionMeta(m);
+        }
+        offset += buf.length;
+      }
+    } finally {
+      fs.closeSync(fd);
+    }
   }
 
   private readNew(file: string): void {
@@ -99,6 +134,10 @@ export class ClaudeJsonlSource implements TokenSource {
           if (!line) continue;
           const ev = parseClaudeJsonlLine(line, file);
           if (ev) this.emit(ev);
+          if (this.onSessionMeta) {
+            const m = parseSessionMetaLine(line);
+            if (m) this.onSessionMeta(m);
+          }
         }
         offset += buf.length;
       }

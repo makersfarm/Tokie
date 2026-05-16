@@ -13,6 +13,20 @@ interface EventStats {
   last7d:   TokenSum;
   bySource: SourceBreakdown[];
 }
+interface SessionTodayRow extends TokenSum {
+  sessionId: string;
+  name: string | null;
+  cwd: string | null;
+  gitBranch: string | null;
+  events: number;
+  firstTs: number;
+  lastTs: number;
+}
+interface SessionDetailRow extends TokenSum {
+  ts: number;
+  source: string;
+  model: string | null;
+}
 
 declare global {
   interface Window {
@@ -20,6 +34,8 @@ declare global {
       subscribe: (cb: (e: PetEvent) => void) => () => void;
       getSnapshot: () => Promise<PetSnapshot>;
       getStats: () => Promise<EventStats>;
+      todayBySession: () => Promise<SessionTodayRow[]>;
+      sessionDetailToday: (sessionId: string) => Promise<SessionDetailRow[]>;
       openMenu: () => Promise<void>;
     };
   }

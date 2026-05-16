@@ -1,4 +1,4 @@
-import type { TokenEvent } from '../types';
+import type { TokenEvent, SessionMetaEvent } from '../types';
 import { tokensToNutrition } from './nutrition';
 import type { EventsDb } from '../storage/eventsDb';
 import type { PetState } from '../pet/PetState';
@@ -11,5 +11,9 @@ export class FeedingPipeline {
     if (!inserted) return;
     const nutrition = tokensToNutrition(e.tokens);
     if (nutrition > 0) this.pet.feed(nutrition);
+  }
+
+  handleSessionMeta(m: SessionMetaEvent): void {
+    this.db.upsertSession(m);
   }
 }
