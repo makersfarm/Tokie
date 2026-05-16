@@ -31,3 +31,14 @@ export function pickBurstLine(mood: Mood, rng: () => number = Math.random): stri
     :                                          BURST_BY_MOOD.normal;
   return pick(bucket, rng);
 }
+
+export const TICKLE_LINES = [
+  '큭큭',
+  '간지러워!',
+  '쓰담쓰담 좋아~',
+  '헤헤헷'
+] as const;
+
+export function pickTickleLine(rng: () => number = Math.random): string {
+  return pick(TICKLE_LINES, rng);
+}

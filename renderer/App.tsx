@@ -12,7 +12,8 @@ import { SpeechBubble } from './components/SpeechBubble';
 import { EatingBurst } from './components/EatingBurst';
 import { EvolveCutscene } from './components/EvolveCutscene';
 import { StatsView } from './components/StatsView';
-import { pickGreeting, pickBurstLine } from './data/speech';
+import { useTickleDetector } from './hooks/useTickleDetector';
+import { pickGreeting, pickBurstLine, pickTickleLine } from './data/speech';
 import { fmtK } from './data/fmt';
 import type { Phase } from '@core/types';
 import { nextThreshold, STAGES } from '@core/pet/stages';
@@ -67,6 +68,7 @@ function PetView() {
   const [greeting, setGreeting] = useState<string | null>(null);
   const [burstLine, setBurstLine] = useState<string | null>(null);
   const [blinking, setBlinking] = useState(false);
+  const [tickleLine, setTickleLine] = useState<string | null>(null);
   const [wakeNonce, setWakeNonce] = useState(0);
   const bumpWake = () => setWakeNonce(n => n + 1);
   const lastClickAt = useRef(0);
@@ -88,6 +90,15 @@ function PetView() {
     transientTimers.current.forEach(clearTimeout);
     transientTimers.current.clear();
   }, []);
+
+  const tickle = useTickleDetector(() => {
+    setTickleLine(pickTickleLine());
+    setFeasting(true);
+    scheduleTimer(() => setFeasting(false), 600);
+    scheduleTimer(() => setTickleLine(null), 1200);
+    bumpWake();
+    window.pet?.nudgeCondition?.(5);
+  });
 
   const sleep = useSleepState(snap?.lastFedAt ?? null, wakeNonce);
 
@@ -192,7 +203,7 @@ function PetView() {
   return (
     <div className="root" onContextMenu={handleContext}>
       {!tiny && <StageBadge phase={snap.phase} compact={compactBadge} />}
-      <div className={`pet-wrap${almostThere ? ' almost-there' : ''}`} {...hover.bind} onPointerDown={onPointerDown} onPointerUp={onPointerUp}>
+      <div className={`pet-wrap${almostThere ? ' almost-there' : ''}`} {...hover.bind} onPointerDown={onPointerDown} onPointerUp={onPointerUp} onPointerMove={tickle.onPointerMove}>
         <Pet phase={snap.phase} mood={snap.mood} feasting={feasting} blinking={blinking} sleeping={sleep.asleep} waking={waking} />
       </div>
       {!tiny && <PetProgressBar phase={snap.phase} xp={snap.lifetimeXP} mood={snap.mood} almost={almostThere} />}
@@ -202,6 +213,7 @@ function PetView() {
       {hover.hovered && <InfoBubble snap={snap} tokensToday={tokensToday} compact={compactInfo} />}
       {greeting   && <SpeechBubble text={greeting}   variant="greeting"  />}
       {burstLine  && <SpeechBubble text={burstLine}  variant="proactive" />}
+      {tickleLine && <SpeechBubble text={tickleLine} variant="greeting"  />}
       {evo && <EvolveCutscene from={evo.from} to={evo.to} />}
     </div>
   );
