@@ -67,7 +67,7 @@ MAX_DECAY_MS       = 24*60*60*1000           // 한 번에 깎이는 상한
 `core/types.ts` 의 디스크리미네이티드 유니언:
 
 ```ts
-| { type: 'fed';          nutrition: number; ts: number }
+| { type: 'fed';          nutrition: number; ts: number; model?: string }
 | { type: 'evolved';      from: Phase; to: Phase; ts: number }
 | { type: 'mood-changed'; from: Mood;  to: Mood;  ts: number }
 | { type: 'snapshot';     snapshot: PetSnapshot }
@@ -79,10 +79,11 @@ MAX_DECAY_MS       = 24*60*60*1000           // 한 번에 깎이는 상한
 
 `core/pet/PetState.ts` — 펫 코어.
 
-- `feed(nutritionEvent)`: condition 증가 → mood 갱신 → lifetimeXP 누적 → phase 재계산 → 변화한 항목들을 이벤트로 emit.
+- `feed(nutritionEvent, model?)`: condition 증가 → mood 갱신 → lifetimeXP 누적 → phase 재계산 → 변화한 항목들을 이벤트로 emit. `model` 인자가 있으면 fed 이벤트에 동반.
 - `tick()`: 직전 tick 으로부터 경과 시간만큼 decay 적용. condition 변경 시 mood-changed 이벤트.
 - `load(snapshot)`: 외부에서 snapshot 강제 교체 (Reset Pet, cursor 영속화 갱신 등). 변경 시 snapshot 이벤트 발행.
 - `snapshot` getter: 현재 상태 immutable read.
+- `nudgeCondition(amount)`: 외부에서 condition 직접 가산 (0..100 단위). cap 100. tickle 같은 인터랙션 보상용. mood 변화 시 mood-changed 이벤트.
 
 ## Feeding pipeline
 

@@ -89,6 +89,7 @@ npm run postinstall  # better-sqlite3 를 Electron ABI 로 rebuild
 | `pet:getSnapshot` | invoke | 현재 snapshot 반환 |
 | `pet:getStats` | invoke | EventsDb.stats(now) 반환 — lifetime / today (로컬 자정 기준) / last24h / last7d / bySource 등 |
 | `pet:openMenu` | invoke | 펫 윈도우 위에 컨텍스트 메뉴 popup (트레이와 동일 내용) |
+| `pet:nudgeCondition` | invoke | (amount: number) => void. 외부 인터랙션이 condition 가산. main 측에서 0..10 clamp. |
 | `pet:event` | push (main→renderer) | PetEvent 매번 전달. 펫 윈도우 + Stats 윈도우 둘 다에 broadcast |
 
 preload (`electron/preload.ts`) 가 `window.pet.{getSnapshot, getStats, subscribe, openMenu}` 으로 노출. renderer 의 `usePetState` / `useTokensToday` / `StatsView` 훅이 각각 사용.

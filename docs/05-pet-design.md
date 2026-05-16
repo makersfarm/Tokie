@@ -141,6 +141,20 @@ export function EatingBurst({ amount, xPct, yPct }) {
 
 `.pet { filter: drop-shadow(0 4px 6px rgba(0,0,0,0.35)); }` — 투명 배경 위에서 펫이 뜬 것처럼 보이게.
 
+## Pet Actions (v0.2)
+
+> 2026-05-16 추가. 스펙: `docs/specs/2026-05-16-pet-actions-design.md`.
+
+| 액션 | 트리거 | 코드 위치 |
+|---|---|---|
+| Breathing | 항상 ON | `renderer/styles.css` `@keyframes breathe`, `.pet-sprite` |
+| Blink | happy/normal mood 일 때 15~30s 랜덤, 150ms | `renderer/App.tsx` blink scheduling; `.pet.blink .pet-eye` in `styles.css`; 각 `phase[0-3].svg` 의 `class="pet-eye"` pupil |
+| Sleep | 마지막 fed > 60min OR 23–06시 (같은 밤에 깨우면 재수면 X) | `renderer/hooks/useSleepState.ts` (`computeSleep`, `isNightHour`, `nightBucket`); `<Pet sleeping={...}>`; `.pet.sleeping` CSS |
+| Wake stretch | sleeping → awake 트랜지션 | `App.tsx` `wasAsleepRef` 패턴 + `.pet.waking` `stretchPop` keyframe |
+| Pet/쓰담쓰담 | 펫 위 마우스 좌우 흔들기 (≥3 reversals, ≥40px, 1s 안, 60s cooldown) | `renderer/hooks/useTickleDetector.ts` (`TickleTracker`); `App.tsx` `tickle` 핸들러; `pet:nudgeCondition` IPC; `TICKLE_LINES` in `renderer/data/speech.ts` |
+| 모델별 식사 (Opus/Sonnet/Haiku) | `fed` 이벤트의 `model` 필드 | `renderer/components/EatingBurst.tsx` `variantOf` + `PREFIX`; `.burst-opus`/`.burst-haiku` CSS |
+| Almost-there | `lifetimeXP / threshold ≥ 0.9` 이고 `phase < 3` | `App.tsx` 파생값; `<PetProgressBar almost>`; `.progress-fill.almost-there` + `.pet-wrap.almost-there` CSS |
+
 ## v2 에서 제거된 요소
 
 - 기존 좌하단 `HUD.tsx` 3줄 monospace 텍스트 — 제거됨. 정보는 (a) 항상 보이는 lifetime/threshold readout, (b) 호버 시 InfoBubble (XP·cond·today), (c) 우클릭 → Show Stats 로 분산.

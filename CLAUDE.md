@@ -72,10 +72,10 @@ npm run postinstall  # better-sqlite3 → Electron ABI rebuild
 | 코드 변경 영역 | 같이 봐야 할 문서 |
 |---|---|
 | `core/tokenSource/`, `installers/statusLine.ts`, `scripts/statusline-shim.cjs`, 영양 가중치 | `docs/01-tokens.md` |
-| `core/pet/`, `core/feeding/`, phase/condition 상수 | `docs/02-pet.md` |
+| `core/pet/` (`PetState.nudgeCondition` 포함), `core/feeding/`, phase/condition 상수 | `docs/02-pet.md` |
 | `electron/bootstrap.ts`, `ipc.ts`, `core/storage/`, 테스트 패턴, `package.json` scripts | `docs/03-implementation.md` |
 | `installers/`, `core/storage/paths.ts`, tray 권한, Reset/Wipe 동작 | `docs/04-permissions-settings.md` |
-| `renderer/public/sprites/`, `renderer/components/{Pet,StageBadge,PetProgressBar,EatingBurst,SpeechBubble,InfoBubble,EvolveCutscene}.tsx`, `renderer/data/speech.ts`, `renderer/hooks/useBurstDetector.ts`, `core/feeding/burstDetector.ts`, `renderer/styles.css` 의 mood/bounce/cutscene | `docs/05-pet-design.md` |
+| `renderer/public/sprites/`, `renderer/components/{Pet,StageBadge,PetProgressBar,EatingBurst,SpeechBubble,InfoBubble,EvolveCutscene}.tsx`, `renderer/data/speech.ts`, `renderer/hooks/{useBurstDetector,useSleepState,useTickleDetector}.ts`, `core/feeding/burstDetector.ts`, `renderer/styles.css` 의 mood/bounce/cutscene/blink/sleep | `docs/05-pet-design.md` |
 | `electron/{window,tray,ipc,preload,statsWindow}.ts`, `renderer/App.tsx`, hover/click threshold·readout·info bubble 관련 (`renderer/hooks/useHover.ts`, `useTokensToday.ts`), drag/resize 관련 CSS | `docs/06-ui.md` |
 
 새 카테고리가 생기면 `docs/README.md` 의 표와 이 표 둘 다 갱신.
@@ -104,3 +104,4 @@ npm run postinstall  # better-sqlite3 → Electron ABI rebuild
 
 - 24 task plan 완료. 73 tests pass. end-to-end smoke 검증.
 - v2 backlog 별도 문서 아직 없음. 추가 작업 합의되면 그때 작성.
+- v0.2 (2026-05-16): pet actions — breathing/blink/sleep/tickle/model-burst/almost-there. 104 tests pass.
